@@ -42,7 +42,8 @@
       position: card.position,
       cardName: card.cardName + (card.reversed ? '（逆位）' : '（正位）'),
       cardNameEn: card.cardNameEn || '',
-      reversed: card.reversed
+      reversed: card.reversed,
+      keywords: card.keywords || []
     };
   });
 
