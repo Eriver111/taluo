@@ -52,6 +52,26 @@
     <button class="arc-nav arc-nav-right" id="arcNavRight">▸</button>
   </div>
 
+  <!-- ===== 全屏揭示层 ===== -->
+  <div class="reveal-overlay" id="revealOverlay">
+    <div class="reveal-card-wrap">
+      <div class="reveal-card" id="revealCard">
+        <div class="rev-card-back">
+          <img src="assets/cards/back.svg" alt="卡背">
+        </div>
+        <div class="rev-card-front">
+          <img id="revealCardImg" src="" alt="塔罗牌">
+          <div class="rev-info">
+            <div class="rev-name" id="revealCardName"></div>
+            <div class="rev-pos" id="revealCardPos"></div>
+            <div class="rev-badge" id="revealCardBadge"></div>
+          </div>
+        </div>
+      </div>
+      <p class="reveal-hint" id="revealHint"></p>
+    </div>
+  </div>
+
   <!-- ===== 底部按钮 ===== -->
   <div class="sh-confirm" id="confirmArea">
     <button class="btn-primary" id="flipBtn" disabled>选 满 牌 位 · 统 一 翻 牌 ▸</button>
@@ -477,31 +497,75 @@ function selectFromArc(deckIdx) {
   updateFlipBtn();
 }
 
-// ===== 统一翻牌（一张一张揭示） =====
+// ===== 全屏逐张翻牌揭示 =====
 document.getElementById('flipBtn').addEventListener('click', function() {
   if (selectedCards.length < requiredCount || flipped) return;
   flipped = true;
   vibrate(15);
   updateFlipBtn();
-  document.getElementById('selectedHint').textContent = '正在揭示牌面...';
 
-  // 逐张翻转：加 revealed 类触发3D翻转
-  var slots = document.querySelectorAll('.slot.filled');
-  slots.forEach(function(slot, i) {
+  var overlay = document.getElementById('revealOverlay');
+  var cardEl = document.getElementById('revealCard');
+  var imgEl = document.getElementById('revealCardImg');
+  var nameEl = document.getElementById('revealCardName');
+  var posEl = document.getElementById('revealCardPos');
+  var badgeEl = document.getElementById('revealCardBadge');
+  var hintEl = document.getElementById('revealHint');
+  var frontFace = document.querySelector('.rev-card-front');
+
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+
+  var idx = 0;
+  function showNext() {
+    if (idx >= selectedCards.length) {
+      // 全部揭示完毕
+      setTimeout(function() {
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+        document.getElementById('flipBtn').style.display = 'none';
+        document.getElementById('aiBtn').style.display = 'block';
+        document.getElementById('selectedHint').textContent = '牌面已全部揭示';
+        // 同时更新槽位显示
+        renderSlots();
+        vibratePattern([15, 40, 20]);
+      }, 800);
+      return;
+    }
+
+    var s = selectedCards[idx];
+    var pos = spread.positions[s.slotIndex];
+
+    // 设置牌面数据
+    imgEl.src = 'assets/cards/' + s.cardObj.id + '.jpg';
+    nameEl.textContent = s.cardObj.name;
+    posEl.textContent = pos.label;
+    if (s.reversed) {
+      badgeEl.textContent = '⬇ 逆位';
+      badgeEl.className = 'rev-badge reversed';
+      frontFace.classList.add('reversed-face');
+    } else {
+      badgeEl.textContent = '⬆ 正位';
+      badgeEl.className = 'rev-badge upright';
+      frontFace.classList.remove('reversed-face');
+    }
+    hintEl.textContent = '第 ' + (idx + 1) + ' 张 · ' + pos.label;
+
+    // 重置为背面
+    cardEl.classList.remove('flipped');
+
+    // 翻转
     setTimeout(function() {
-      slot.classList.add('revealed');
-      vibrate(10);
-    }, i * 700);
-  });
+      cardEl.classList.add('flipped');
+      vibrate(12);
+    }, 300);
 
-  // 全部翻完后显示 AI 按钮
-  var totalDelay = slots.length * 700 + 500;
-  setTimeout(function() {
-    document.getElementById('flipBtn').style.display = 'none';
-    document.getElementById('aiBtn').style.display = 'block';
-    document.getElementById('selectedHint').textContent = '牌面已全部揭示';
-    vibratePattern([15, 40, 20]);
-  }, totalDelay);
+    idx++;
+    // 下一张
+    setTimeout(showNext, 2200);
+  }
+
+  showNext();
 });
 
 // ===== AI 解读 =====
