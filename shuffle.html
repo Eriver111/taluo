@@ -238,10 +238,8 @@ function doRenderArc(withFlyIn) {
     if (withFlyIn) {
       div.style.setProperty('--fly-delay', (i * 0.015) + 's');
     }
-    // 方案C：放松手扇，±35°
-    var t = total > 1 ? i / (total - 1) : 0.5;
-    var fixedAngle = (t - 0.5) * 70;
-    div.style.setProperty('--arc-angle', fixedAngle + 'deg');
+    // 动态弧度：角度在 updateArcPosition 中根据视口位置计算
+    div.style.setProperty('--arc-angle', '0deg');
     div.style.setProperty('--arc-idx', i);
 
     var isSelected = selectedCards.some(function(s) { return s.cardObj.id === card.id; });
@@ -282,10 +280,9 @@ function wrapScroll(px) {
 function updateArcPosition() {
   scrollPx = wrapScroll(scrollPx);
   var container = document.getElementById('arcContainer');
-  // 渲染牌在循环位置：当前位置 + 左偏移一份（让末尾的牌出现在开头）
   container.style.transform = 'translateX(' + (-scrollPx) + 'px)';
-  // 如果靠近边界，把远端的牌移到对面（通过调整 left）
   repositionWrappedCards();
+  updateCardAngles();
 }
 
 function repositionWrappedCards() {
@@ -296,17 +293,40 @@ function repositionWrappedCards() {
   cards.forEach(function(el) {
     var deckIdx = parseInt(el.dataset.deckIdx);
     var baseX = deckIdx * arcCardWidth;
-    // 计算牌在视口中的位置（考虑包裹）
     var screenX = baseX - scrollPx;
-    // 如果牌在视口右侧太远（>stageW+200），移到左侧
-    if (screenX > stageW + 200) {
+    if (screenX > stageW + 300) {
       el.style.left = (baseX - loopW) + 'px';
-    } else if (screenX < -200) {
+    } else if (screenX < -300) {
       el.style.left = (baseX + loopW) + 'px';
     } else {
       el.style.left = baseX + 'px';
     }
   });
+}
+
+// 动态弧度：视口中心的牌角度=0°，两侧渐增至±35°
+// 只更新视口范围内的牌（~25张），性能友好
+function updateCardAngles() {
+  var stageEl = document.getElementById('arcStage');
+  var stageW = stageEl.offsetWidth;
+  if (!stageW) return;
+  var centerX = stageW / 2;
+  var maxAngle = 35;
+  var spreadZone = stageW * 0.7;
+
+  var cards = document.querySelectorAll('.arc-card');
+  for (var i = 0; i < cards.length; i++) {
+    var el = cards[i];
+    var deckIdx = parseInt(el.dataset.deckIdx);
+    var cardLeft = parseFloat(el.style.left) || (deckIdx * arcCardWidth);
+    var cardCenterX = cardLeft - scrollPx + (parseFloat(el.style.width) || 115) / 2;
+    // 只更新屏幕附近±300px的牌
+    if (cardCenterX < -300 || cardCenterX > stageW + 300) continue;
+    var dist = cardCenterX - centerX;
+    var t = Math.max(-1, Math.min(1, dist / spreadZone));
+    var angle = t * maxAngle;
+    el.style.setProperty('--arc-angle', angle + 'deg');
+  }
 }
 
 function renderArcMarks() {
@@ -328,6 +348,7 @@ function scrollTo(px) {
   scrollPx = wrapScroll(px);
   document.getElementById('arcContainer').style.transform = 'translateX(' + (-scrollPx) + 'px)';
   repositionWrappedCards();
+  updateCardAngles();
 }
 
 // 桌面按钮
@@ -362,6 +383,7 @@ document.getElementById('arcStage').addEventListener('wheel', function(e) {
       velocity *= 0.94;
       c.style.transform = 'translateX(' + (-scrollPx) + 'px)';
       repositionWrappedCards();
+      updateCardAngles();
       if (Math.abs(velocity) > 0.1) {
         momentumId = requestAnimationFrame(step);
       }
@@ -391,6 +413,7 @@ document.getElementById('arcStage').addEventListener('wheel', function(e) {
     scrollPx = wrapScroll(startScroll + movedX);
     document.getElementById('arcContainer').style.transform = 'translateX(' + (-scrollPx) + 'px)';
     repositionWrappedCards();
+    updateCardAngles();
 
     var now = Date.now();
     var dt = now - lastTime;
@@ -408,6 +431,7 @@ document.getElementById('arcStage').addEventListener('wheel', function(e) {
     scrollPx = wrapScroll(scrollPx);
     cont.style.transform = 'translateX(' + (-scrollPx) + 'px)';
     repositionWrappedCards();
+    updateCardAngles();
 
     if (cardTarget && Math.abs(movedX) < 8 && Math.abs(movedY) < 8) {
       var deckIdx = parseInt(cardTarget.dataset.deckIdx);
