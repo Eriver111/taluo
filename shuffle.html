@@ -151,7 +151,7 @@ function renderSlots() {
     if (selected) {
       slot.classList.add('filled');
       if (flipped) {
-        // 已翻牌：显示牌面+逆位
+        slot.classList.add('revealed'); // 保持翻牌后的展开状态
         slot.innerHTML =
           '<div class="slot-card-inner' + (selected.reversed ? ' rev' : '') + '">' +
             '<div class="slot-card-back"><img src="assets/cards/back.svg" alt="卡背"></div>' +
