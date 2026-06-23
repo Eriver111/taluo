@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>弧度方案对比</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0a0815; color:#e8e0f0; font-family:'PingFang SC','Microsoft YaHei',sans-serif; padding:20px; }
+h1 { text-align:center; font-size:20px; letter-spacing:6px; margin-bottom: 24px; color:#c4a4ff; }
+.demo-grid { display:flex; flex-direction:column; gap:20px; max-width:500px; margin:0 auto; }
+.demo-row {
+  background:rgba(14,13,30,.8); border:1px solid rgba(155,109,255,.15);
+  border-radius:14px; padding:16px 10px 10px;
+}
+.demo-label {
+  display:flex; justify-content:space-between; align-items:baseline;
+  margin-bottom:8px; padding:0 8px;
+}
+.demo-label h3 { font-size:14px; letter-spacing:3px; color:#c4a4ff; }
+.demo-label span { font-size:11px; color:#6a6280; }
+.canvas-box {
+  position:relative; height:220px; overflow:hidden;
+  background:rgba(0,0,0,.2); border-radius:10px;
+}
+.card {
+  position:absolute; bottom:0; left:50%;
+  width:70px; height:105px;
+  border-radius:8px; border:2px solid rgba(155,109,255,.25);
+  background:linear-gradient(135deg,#1a0e40,#2d1460,#1a0e40);
+  box-shadow:0 2px 12px rgba(0,0,0,.4);
+  display:flex; align-items:center; justify-content:center;
+}
+.card::after { content:'✦'; font-size:16px; color:rgba(155,109,255,.3); }
+.card-num {
+  position:absolute; top:-5px; left:-5px;
+  width:16px; height:16px; background:rgba(155,109,255,.8);
+  color:#fff; font-size:8px; font-weight:700;
+  border-radius:50%; display:flex; align-items:center; justify-content:center;
+}
+.legend { font-size:10px; color:#6a6280; text-align:center; padding:6px 8px 0; letter-spacing:1px; }
+.choose-btn {
+  display:inline-block; margin:4px auto 0; padding:5px 16px;
+  background:rgba(155,109,255,.1); border:1px solid rgba(155,109,255,.2);
+  border-radius:6px; color:#c4a4ff; font-size:11px; cursor:pointer;
+  letter-spacing:2px; transition:all .2s;
+}
+.choose-btn:hover { background:rgba(155,109,255,.2); }
+.cards-row { text-align:center; padding-top:6px; }
+</style>
+</head>
+<body>
+<h1>🃏 牌扇弧度方案</h1>
+<div class="demo-grid" id="demoGrid"></div>
+
+<script>
+var schemes = [
+  {
+    name:'方案 A：紧握手扇',
+    desc:'每屏18张 | 间距24px | 角度±18° | 握点180%',
+    spacing:24, angleTotal:36, origin:180, count:18,
+    note:'像手里握牌，很紧凑，牌几乎直立，只露边角'
+  },
+  {
+    name:'方案 B：标准手扇',
+    desc:'每屏13张 | 间距32px | 角度±28° | 握点160%',
+    spacing:32, angleTotal:56, origin:160, count:13,
+    note:'手里摊开看牌的感觉，有呼吸感但不散'
+  },
+  {
+    name:'方案 C：放松手扇',
+    desc:'每屏10张 | 间距40px | 角度±35° | 握点140%',
+    spacing:40, angleTotal:70, origin:140, count:10,
+    note:'更舒展，每张牌露出更多'
+  },
+  {
+    name:'方案 D：桌上铺开',
+    desc:'每屏8张 | 间距50px | 角度±45° | 握点120%',
+    spacing:50, angleTotal:90, origin:120, count:8,
+    note:'桌面摊牌的感觉，牌面看得最清楚'
+  },
+  {
+    name:'方案 E：大弧度桌扇',
+    desc:'每屏6张 | 间距65px | 角度±60° | 握点100%',
+    spacing:65, angleTotal:120, origin:100, count:6,
+    note:'像牌桌上发牌后的展示，开阔'
+  }
+];
+
+var grid = document.getElementById('demoGrid');
+
+schemes.forEach(function(s, si) {
+  var row = document.createElement('div');
+  row.className = 'demo-row';
+
+  var label = document.createElement('div');
+  label.className = 'demo-label';
+  label.innerHTML = '<h3>' + s.name + '</h3><span>' + s.desc + '</span>';
+
+  var canvas = document.createElement('div');
+  canvas.className = 'canvas-box';
+
+  // 渲染卡片
+  for (var i = 0; i < s.count; i++) {
+    var t = s.count > 1 ? i / (s.count - 1) : 0.5;
+    var angle = (t - 0.5) * s.angleTotal; // -half to +half
+
+    var card = document.createElement('div');
+    card.className = 'card';
+    card.style.transformOrigin = '50% ' + s.origin + '%';
+    card.style.transform = 'translateX(-50%) rotate(' + angle + 'deg)';
+    card.style.marginLeft = ((i - s.count/2 + 0.5) * s.spacing) + 'px';
+
+    var num = document.createElement('span');
+    num.className = 'card-num';
+    num.textContent = i + 1;
+    card.appendChild(num);
+
+    canvas.appendChild(card);
+  }
+
+  var legend = document.createElement('p');
+  legend.className = 'legend';
+  legend.textContent = s.note;
+
+  var btnRow = document.createElement('div');
+  btnRow.className = 'cards-row';
+  var btn = document.createElement('button');
+  btn.className = 'choose-btn';
+  btn.textContent = '选这个';
+  btn.onclick = function() {
+    if (confirm('选择「' + s.name + '」？\n\n' + s.desc + '\n' + s.note + '\n\n点击确定后我会按这个方案调整')) {
+      alert('已标记选择：' + s.name + '\n请告诉我确认，我立即实施');
+    }
+  };
+  btnRow.appendChild(btn);
+
+  row.appendChild(label);
+  row.appendChild(canvas);
+  row.appendChild(legend);
+  row.appendChild(btnRow);
+  grid.appendChild(row);
+});
+</script>
+</body>
+</html>

@@ -100,7 +100,7 @@ document.getElementById('slotCount').textContent = requiredCount;
 // ===== 全局状态 =====
 var deckCards = TAROT_CARDS.slice();
 var shuffledIndices = [];
-var arcCardWidth = window.innerWidth <= 380 ? 36 : window.innerWidth <= 480 ? 38 : 40;
+var arcCardWidth = window.innerWidth <= 380 ? 40 : window.innerWidth <= 480 ? 44 : 50;
 var scrollPx = 0;                    // 像素级滚动位置
 var maxScrollPx = 0;                 // 最大滚动范围
 var selectedCards = [];
@@ -221,9 +221,11 @@ function doRenderArc(withFlyIn) {
 
   var total = shuffledIndices.length;
 
-  // 计算最大滚动范围
-  maxScrollPx = Math.max(0, (total - 1) * arcCardWidth - 60);
+  // 循环滚动范围
+  var loopWidth = total * arcCardWidth;
+  maxScrollPx = loopWidth;
 
+  // 渲染时每个牌位画一次，位置取模实现循环
   for (var i = 0; i < total; i++) {
     var deckIdx = i;
     var cardIdx = shuffledIndices[deckIdx];
@@ -236,9 +238,9 @@ function doRenderArc(withFlyIn) {
     if (withFlyIn) {
       div.style.setProperty('--fly-delay', (i * 0.015) + 's');
     }
-    // 手持扇形：缩小弧度，边缘牌也清晰可见
+    // 方案C：放松手扇，±35°
     var t = total > 1 ? i / (total - 1) : 0.5;
-    var fixedAngle = (t - 0.5) * 50;
+    var fixedAngle = (t - 0.5) * 70;
     div.style.setProperty('--arc-angle', fixedAngle + 'deg');
     div.style.setProperty('--arc-idx', i);
 
@@ -270,11 +272,41 @@ function doRenderArc(withFlyIn) {
   updateArcPosition();
 }
 
+// 循环滚动包裹
+function wrapScroll(px) {
+  if (maxScrollPx <= 0) return 0;
+  var w = ((px % maxScrollPx) + maxScrollPx) % maxScrollPx;
+  return w;
+}
+
 function updateArcPosition() {
-  // 只更新容器位移（极轻量，一次DOM操作）
+  scrollPx = wrapScroll(scrollPx);
   var container = document.getElementById('arcContainer');
+  // 渲染牌在循环位置：当前位置 + 左偏移一份（让末尾的牌出现在开头）
   container.style.transform = 'translateX(' + (-scrollPx) + 'px)';
-  // 角度和z-index固定不变（renderArc时已设置）
+  // 如果靠近边界，把远端的牌移到对面（通过调整 left）
+  repositionWrappedCards();
+}
+
+function repositionWrappedCards() {
+  var cards = document.querySelectorAll('.arc-card');
+  var loopW = maxScrollPx;
+  if (loopW <= 0) return;
+  var stageW = document.getElementById('arcStage').offsetWidth;
+  cards.forEach(function(el) {
+    var deckIdx = parseInt(el.dataset.deckIdx);
+    var baseX = deckIdx * arcCardWidth;
+    // 计算牌在视口中的位置（考虑包裹）
+    var screenX = baseX - scrollPx;
+    // 如果牌在视口右侧太远（>stageW+200），移到左侧
+    if (screenX > stageW + 200) {
+      el.style.left = (baseX - loopW) + 'px';
+    } else if (screenX < -200) {
+      el.style.left = (baseX + loopW) + 'px';
+    } else {
+      el.style.left = baseX + 'px';
+    }
+  });
 }
 
 function renderArcMarks() {
@@ -293,8 +325,9 @@ function renderArcMarks() {
 
 // 更新滚动位置（桌面按钮/滚轮）
 function scrollTo(px) {
-  scrollPx = Math.max(0, Math.min(maxScrollPx, px));
+  scrollPx = wrapScroll(px);
   document.getElementById('arcContainer').style.transform = 'translateX(' + (-scrollPx) + 'px)';
+  repositionWrappedCards();
 }
 
 // 桌面按钮
@@ -325,11 +358,11 @@ document.getElementById('arcStage').addEventListener('wheel', function(e) {
     if (Math.abs(velocity) < 0.3) return;
     var c = cont;
     function step() {
-      scrollPx += velocity;
+      scrollPx = wrapScroll(scrollPx + velocity);
       velocity *= 0.94;
-      scrollPx = Math.max(0, Math.min(maxScrollPx, scrollPx));
       c.style.transform = 'translateX(' + (-scrollPx) + 'px)';
-      if (Math.abs(velocity) > 0.1 && scrollPx > 0 && scrollPx < maxScrollPx) {
+      repositionWrappedCards();
+      if (Math.abs(velocity) > 0.1) {
         momentumId = requestAnimationFrame(step);
       }
     }
@@ -355,9 +388,9 @@ document.getElementById('arcStage').addEventListener('wheel', function(e) {
     movedY = startY - curY;
 
     e.preventDefault();
-    scrollPx = Math.max(-30, Math.min(maxScrollPx + 30, startScroll + movedX));
-    // 直接设置 transform，不触发函数调用（极致性能）
+    scrollPx = wrapScroll(startScroll + movedX);
     document.getElementById('arcContainer').style.transform = 'translateX(' + (-scrollPx) + 'px)';
+    repositionWrappedCards();
 
     var now = Date.now();
     var dt = now - lastTime;
@@ -372,9 +405,9 @@ document.getElementById('arcStage').addEventListener('wheel', function(e) {
 
   stage.addEventListener('touchend', function() {
     touching = false;
-    if (scrollPx < 0) { scrollPx = 0; velocity = 0; }
-    if (scrollPx > maxScrollPx) { scrollPx = maxScrollPx; velocity = 0; }
+    scrollPx = wrapScroll(scrollPx);
     cont.style.transform = 'translateX(' + (-scrollPx) + 'px)';
+    repositionWrappedCards();
 
     if (cardTarget && Math.abs(movedX) < 8 && Math.abs(movedY) < 8) {
       var deckIdx = parseInt(cardTarget.dataset.deckIdx);
