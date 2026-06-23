@@ -236,9 +236,9 @@ function doRenderArc(withFlyIn) {
     if (withFlyIn) {
       div.style.setProperty('--fly-delay', (i * 0.015) + 's');
     }
-    // 固定弧形角度（不随滚动变化，大幅提升性能）
+    // 固定弧形角度：桌面半圈，左牌倾右(+)，右牌倾左(-)，向心汇聚
     var t = total > 1 ? i / (total - 1) : 0.5;
-    var fixedAngle = (t - 0.5) * 130;
+    var fixedAngle = (0.5 - t) * 140;
     div.style.setProperty('--arc-angle', fixedAngle + 'deg');
     div.style.setProperty('--arc-idx', i);
 
@@ -325,7 +325,7 @@ document.getElementById('arcStage').addEventListener('wheel', function(e) {
     if (Math.abs(velocity) < 0.3) return;
     var c = cont;
     function step() {
-      scrollPx -= velocity;
+      scrollPx += velocity;
       velocity *= 0.94;
       scrollPx = Math.max(0, Math.min(maxScrollPx, scrollPx));
       c.style.transform = 'translateX(' + (-scrollPx) + 'px)';
