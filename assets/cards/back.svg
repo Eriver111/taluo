@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 468" width="300" height="468">
+  <defs>
+    <pattern id="grid" width="12" height="12" patternUnits="userSpaceOnUse">
+      <rect width="12" height="12" fill="none"/>
+      <line x1="0" y1="6" x2="12" y2="6" stroke="rgba(200,180,140,.06)" stroke-width="0.5"/>
+      <line x1="6" y1="0" x2="6" y2="12" stroke="rgba(200,180,140,.06)" stroke-width="0.5"/>
+    </pattern>
+    <radialGradient id="centerGlow" cx="50%" cy="45%">
+      <stop offset="0%" stop-color="rgba(140,120,180,.15)"/>
+      <stop offset="100%" stop-color="rgba(10,6,30,0)"/>
+    </radialGradient>
+  </defs>
+
+  <!-- 底色 -->
+  <rect width="300" height="468" rx="14" fill="#0d0828"/>
+  <rect width="300" height="468" rx="14" fill="url(#grid)"/>
+
+  <!-- 边框 -->
+  <rect x="8" y="8" width="284" height="452" rx="10" fill="none" stroke="rgba(180,160,130,.15)" stroke-width="1.5"/>
+  <rect x="14" y="14" width="272" height="440" rx="8" fill="none" stroke="rgba(180,160,130,.08)" stroke-width="0.5"/>
+
+  <!-- 内框装饰线 -->
+  <rect x="22" y="22" width="256" height="424" rx="6" fill="none" stroke="rgba(180,160,130,.12)" stroke-width="1"/>
+  <rect x="28" y="28" width="244" height="412" rx="4" fill="none" stroke="rgba(180,160,130,.06)" stroke-width="0.5"/>
+
+  <!-- 四角星形装饰 -->
+  <g opacity="0.15" fill="none" stroke="rgba(200,180,140,.5)" stroke-width="1.2">
+    <!-- 左上 -->
+    <path d="M44,44 L52,36 L60,44 L52,52 Z"/>
+    <!-- 右上 -->
+    <path d="M240,44 L248,36 L256,44 L248,52 Z"/>
+    <!-- 左下 -->
+    <path d="M44,424 L52,416 L60,424 L52,432 Z"/>
+    <!-- 右下 -->
+    <path d="M240,424 L248,416 L256,424 L248,432 Z"/>
+  </g>
+
+  <!-- 四角小圆点 -->
+  <circle cx="52" cy="44" r="2" fill="rgba(200,180,140,.25)"/>
+  <circle cx="248" cy="44" r="2" fill="rgba(200,180,140,.25)"/>
+  <circle cx="52" cy="424" r="2" fill="rgba(200,180,140,.25)"/>
+  <circle cx="248" cy="424" r="2" fill="rgba(200,180,140,.25)"/>
+
+  <!-- 中心区域发光 -->
+  <ellipse cx="150" cy="210" rx="100" ry="140" fill="url(#centerGlow)"/>
+
+  <!-- 中心八芒星 -->
+  <g transform="translate(150,210)" opacity="0.2">
+    <polygon points="0,-70 12,-18 70,0 12,18 0,70 -12,18 -70,0 -12,-18" fill="rgba(200,180,140,.3)" stroke="rgba(200,180,140,.4)" stroke-width="1"/>
+  </g>
+
+  <!-- 八角形框架 -->
+  <g transform="translate(150,210)" opacity="0.12">
+    <polygon points="0,-80 25,-25 80,0 25,25 0,80 -25,25 -80,0 -25,-25" fill="none" stroke="rgba(200,180,140,.5)" stroke-width="1.5"/>
+  </g>
+
+  <!-- 中心小圆 -->
+  <circle cx="150" cy="210" r="12" fill="none" stroke="rgba(200,180,140,.2)" stroke-width="1"/>
+  <circle cx="150" cy="210" r="4" fill="rgba(200,180,140,.15)"/>
+
+  <!-- 上下装饰纹 -->
+  <g opacity="0.1" fill="none" stroke="rgba(200,180,140,.4)" stroke-width="1">
+    <!-- 上方纹饰 -->
+    <path d="M100,140 Q150,120 200,140"/>
+    <path d="M110,148 Q150,130 190,148"/>
+    <!-- 下方纹饰 -->
+    <path d="M100,280 Q150,300 200,280"/>
+    <path d="M110,272 Q150,290 190,272"/>
+  </g>
+
+  <!-- 两侧小十字星 -->
+  <g fill="rgba(200,180,140,.1)">
+    <rect x="147" y="90" width="6" height="16" rx="3"/>
+    <rect x="142" y="95" width="16" height="6" rx="3"/>
+    <rect x="147" y="320" width="6" height="16" rx="3"/>
+    <rect x="142" y="325" width="16" height="6" rx="3"/>
+  </g>
+
+  <!-- 顶部文字装饰弧线 -->
+  <g opacity="0.08">
+    <text x="150" y="375" text-anchor="middle" font-family="serif" font-size="10" fill="rgba(200,180,140,.5)" letter-spacing="6">T A R O T</text>
+  </g>
+
+  <!-- 底部边框装饰小菱形 -->
+  <g opacity="0.08" fill="rgba(200,180,140,.3)">
+    <polygon points="88,400 92,396 96,400 92,404"/>
+    <polygon points="150,400 154,396 158,400 154,404"/>
+    <polygon points="204,400 208,396 212,400 208,404"/>
+  </g>
+</svg>

@@ -1,0 +1,345 @@
+/* ===== 知时塔罗 — 弧形牌扇抽牌样式 ===== */
+
+/* === 应用容器 === */
+.shuffle-app {
+  position: relative; z-index: 1;
+  max-width: 520px; margin: 0 auto;
+  padding: 32px 16px 48px;
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  animation: fadeUp 0.8s ease-out;
+}
+
+/* === 头部 === */
+.sh-top {
+  text-align: center; margin-bottom: 10px;
+}
+
+.sh-back {
+  font-size: 12px; color: var(--text-dim);
+  letter-spacing: 2px; display: inline-block;
+  margin-bottom: 4px; transition: var(--transition);
+}
+
+.sh-back:hover { color: var(--violet-light); }
+
+.sh-title {
+  font-family: var(--font-kai);
+  font-size: 28px; letter-spacing: 10px;
+  background: linear-gradient(135deg, var(--violet-dark), var(--violet-light));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 4px;
+}
+
+/* === 问题条 === */
+.sh-question {
+  text-align: center; padding: 8px 14px;
+  background: rgba(155,109,255,.04);
+  border: 1px solid var(--border-violet);
+  border-radius: var(--radius-sm);
+  margin-bottom: 14px;
+}
+
+.sh-q-label {
+  font-size: 10px; color: var(--text-dim);
+  letter-spacing: 3px; display: block;
+}
+
+.sh-q-text {
+  font-size: 14px; color: var(--text-primary);
+  font-style: italic; letter-spacing: 1px;
+}
+
+/* ===== 上方：已选牌位 ===== */
+.selected-row {
+  margin-bottom: 10px;
+}
+
+.selected-slots {
+  display: flex; gap: 10px; justify-content: center;
+}
+
+.slot {
+  flex: 1; max-width: 150px;
+  min-height: 200px;
+  border: 1px dashed rgba(155,109,255,.2);
+  border-radius: var(--radius);
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 4px;
+  transition: var(--transition);
+  position: relative; padding: 10px 6px;
+  background: rgba(0,0,0,.1);
+}
+
+.slot.filled {
+  border-style: solid;
+  border-color: var(--border-violet-active);
+  background: rgba(155,109,255,.06);
+  box-shadow: 0 0 20px var(--violet-glow);
+}
+
+.slot-empty {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+
+.slot-num {
+  font-size: 28px; color: rgba(155,109,255,.12);
+  font-weight: 700;
+}
+
+.slot-label {
+  font-size: 11px; color: var(--text-dim); letter-spacing: 2px;
+}
+
+.slot-img {
+  width: 72px; height: 108px;
+  object-fit: cover; border-radius: 6px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.3);
+  transition: transform 0.3s ease;
+}
+
+.slot-img.slot-reversed {
+  transform: rotate(180deg);
+  box-shadow: 0 2px 10px rgba(200,100,100,.2);
+}
+
+.slot-name {
+  font-size: 13px; font-weight: 600; color: var(--text-primary);
+  letter-spacing: 1px; text-align: center;
+}
+
+.slot-pos {
+  font-size: 10px; color: var(--violet-light); letter-spacing: 1px;
+}
+
+.slot-rev {
+  font-size: 10px; letter-spacing: 1px;
+  padding: 1px 8px; border-radius: 8px;
+  background: rgba(200,100,100,.1);
+  color: #ff9090;
+}
+
+.slot-remove {
+  position: absolute; top: 6px; right: 6px;
+  width: 22px; height: 22px;
+  background: rgba(0,0,0,.4); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 50%; color: rgba(255,255,255,.5);
+  font-size: 11px; cursor: pointer; display: flex; align-items: center;
+  justify-content: center; transition: var(--transition);
+}
+
+.slot-remove:hover {
+  background: rgba(255,60,60,.3);
+  border-color: rgba(255,80,80,.4);
+  color: #fff;
+}
+
+.selected-hint {
+  text-align: center; font-size: 11px;
+  color: var(--text-dim); letter-spacing: 2px;
+  margin-top: 8px;
+}
+
+/* ===== 下方：弧形牌扇 ===== */
+.arc-stage {
+  position: relative; flex: 1;
+  min-height: 340px;
+  display: flex; align-items: flex-end; justify-content: center;
+  overflow: hidden;
+  margin: 4px 0 12px;
+}
+
+.arc-container {
+  position: relative;
+  width: 100%; height: 100%;
+  display: flex; align-items: flex-end; justify-content: center;
+  padding-bottom: 0;
+}
+
+/* 弧形卡牌 */
+.arc-card {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 115px; height: 175px;
+  transform-origin: 50% 110%;  /* 旋转中心在牌底部下方 */
+  transform: translateX(-50%) rotate(var(--arc-angle)) translateY(-20px);
+  z-index: calc(var(--arc-idx, 0) + 10);
+  cursor: pointer;
+  border-radius: 10px; overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,.5);
+  transition: transform 0.3s ease, filter 0.3s ease, z-index 0s;
+  will-change: transform;
+}
+
+.arc-card:hover {
+  transform: translateX(-50%) rotate(var(--arc-angle)) translateY(-70px) scale(1.18);
+  z-index: 100 !important;
+  filter: brightness(1.15);
+  box-shadow: 0 8px 32px rgba(155,109,255,.25);
+}
+
+.arc-card.picked {
+  filter: brightness(0.4) saturate(0.2);
+  pointer-events: none;
+}
+
+.arc-card-img {
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
+  user-select: none; -webkit-user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* 无图片回退 */
+.arc-card.no-img {
+  background: linear-gradient(135deg, #1a0a3e, #2d1060);
+  border: 2px solid rgba(155,109,255,.3);
+  display: flex; align-items: center; justify-content: center;
+}
+
+.arc-card.no-img::after {
+  content: '✦'; font-size: 20px; color: rgba(155,109,255,.3);
+}
+
+/* 弧形导航按钮 */
+.arc-nav {
+  position: absolute; bottom: 16px;
+  width: 34px; height: 48px;
+  background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.08);
+  border-radius: 6px; color: var(--violet-light);
+  font-size: 16px; cursor: pointer; z-index: 50;
+  backdrop-filter: blur(8px); transition: all 0.3s;
+}
+
+.arc-nav:hover { background: rgba(155,109,255,.15); }
+
+.arc-nav-left { left: 4px; }
+.arc-nav-right { right: 4px; }
+
+/* ===== 弹出层 ===== */
+.popup-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(3,2,10,.85);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 16px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.popup-overlay.active {
+  opacity: 1; pointer-events: auto;
+}
+
+.popup-card-wrap {
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  cursor: pointer;
+}
+
+.tarot-card-big {
+  width: 210px; height: 330px;
+  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+  position: relative;
+}
+
+.tarot-card-big.flipped {
+  transform: rotateY(180deg);
+}
+
+.tcb-back, .tcb-front {
+  position: absolute; inset: 0;
+  backface-visibility: hidden;
+  border-radius: 12px; overflow: hidden;
+  box-shadow: 0 8px 48px rgba(155,109,255,.2);
+}
+
+.tcb-back {
+  z-index: 2;
+  background: #0d0828;
+}
+
+.tcb-back .tcb-img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+
+.tcb-front {
+  z-index: 1;
+  transform: rotateY(180deg);
+}
+
+.tcb-front .tcb-img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.tcb-front.reversed-face .tcb-img {
+  transform: rotate(180deg);
+}
+
+.tcb-info {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 14px 10px;
+  background: linear-gradient(transparent, rgba(0,0,0,.75));
+  text-align: center;
+}
+
+.tcb-name {
+  font-size: 17px; font-weight: 700; color: #fff;
+  letter-spacing: 3px; text-shadow: 0 1px 4px rgba(0,0,0,.8);
+}
+
+.tcb-rev {
+  font-size: 13px; letter-spacing: 2px;
+  margin-top: 2px;
+}
+
+.popup-hint {
+  font-size: 13px; color: rgba(255,255,255,.6);
+  letter-spacing: 3px;
+  animation: breath 2s ease-in-out infinite;
+}
+
+@keyframes breath {
+  0%,100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.popup-close {
+  position: absolute; top: 20px; right: 20px;
+  width: 40px; height: 40px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 50%; color: rgba(255,255,255,.5);
+  font-size: 18px; cursor: pointer; display: flex;
+  align-items: center; justify-content: center;
+  transition: var(--transition); z-index: 10;
+}
+
+.popup-close:hover {
+  background: rgba(255,255,255,.1);
+  color: #fff;
+}
+
+/* ===== 底部确认 ===== */
+.sh-confirm {
+  margin-top: auto; padding-top: 12px;
+}
+
+.sh-confirm .btn-primary:disabled {
+  opacity: 0.3; pointer-events: none; animation: none;
+}
+
+/* ===== 响应式 ===== */
+@media(max-width: 400px) {
+  .shuffle-app { padding: 24px 10px 36px; }
+  .sh-title { font-size: 24px; letter-spacing: 6px; }
+  .slot { min-height: 150px; }
+  .slot-img { width: 56px; height: 84px; }
+  .arc-card { width: 85px; height: 130px; }
+  .arc-stage { min-height: 260px; }
+  .tarot-card-big { width: 160px; height: 250px; }
+}

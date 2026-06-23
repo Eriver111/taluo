@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>解读结果 · 知时塔罗</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/result.css">
+</head>
+<body>
+<canvas id="mxhCanvas"></canvas>
+
+<div class="result-container" id="app">
+  <!-- 头部 -->
+  <div class="result-header">
+    <a href="index.html" class="back-link">← 重新占卜</a>
+    <div id="spreadNameDisplay" class="spread-name"></div>
+    <div id="questionDisplay" class="user-question"></div>
+  </div>
+
+  <!-- 卡牌展示条 -->
+  <div class="card-strip" id="cardStrip"></div>
+
+  <!-- AI 解读加载 -->
+  <div class="ai-loading" id="aiLoading">
+    <div class="spinner"></div>
+    <p>AI 正在深度解读你的牌面...</p>
+    <p style="font-size:12px;color:var(--text-dim);margin-top:4px;">这可能需要几秒钟</p>
+  </div>
+
+  <!-- AI 解读内容（初始隐藏） -->
+  <div class="ai-reading" id="aiReading" style="display:none;">
+    <!-- 整体解读 -->
+    <div class="section-drawer drawer-open">
+      <div class="drawer-toggle" onclick="toggleDrawer('drawerOverall')">
+        <span class="drawer-arrow">▸</span>
+        <h3>🌌 整体解读</h3>
+      </div>
+      <div class="drawer-body">
+        <div class="drawer-content">
+          <div class="overall-reading" id="overallText"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 逐张解读容器 -->
+    <div id="cardReadings"></div>
+
+    <!-- 行动建议 -->
+    <div class="section-drawer drawer-open">
+      <div class="drawer-toggle" onclick="toggleDrawer('drawerAdvice')">
+        <span class="drawer-arrow">▸</span>
+        <h3>💡 行动建议</h3>
+      </div>
+      <div class="drawer-body">
+        <div class="drawer-content">
+          <div class="advice-section" id="adviceText"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 反思问题 -->
+    <div class="section-drawer drawer-open">
+      <div class="drawer-toggle" onclick="toggleDrawer('drawerReflection')">
+        <span class="drawer-arrow">▸</span>
+        <h3>❓ 反思问题</h3>
+      </div>
+      <div class="drawer-body">
+        <div class="drawer-content">
+          <div class="reflection-section" id="reflectionText"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 错误状态（初始隐藏） -->
+  <div class="ai-error" id="aiError" style="display:none;">
+    <div class="error-icon">⚠️</div>
+    <p id="errorMsg">AI 服务暂时不可用</p>
+    <button class="btn-secondary" onclick="showFallbackContent()">查看牌义参考</button>
+  </div>
+
+  <!-- 分享 -->
+  <div class="share-section" id="shareSection" style="display:none;">
+    <button class="btn-secondary" onclick="copyShareLink()" style="width:auto;padding:12px 28px;">
+      📋 复制链接分享
+    </button>
+  </div>
+
+  <!-- 页脚 -->
+  <div class="footer">
+    <p>知时塔罗 · AI 深度解读</p>
+    <p class="disclaimer">※ 本站内容仅供娱乐交流，不构成任何决策建议。塔罗牌是一种自我探索的工具，请理性看待占卜结果。</p>
+  </div>
+</div>
+
+<script src="js/mo-xing-he.js"></script>
+<script src="js/tarot-data.js"></script>
+<script src="js/result.js"></script>
+</body>
+</html>

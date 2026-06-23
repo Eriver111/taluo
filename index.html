@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知时塔罗 · AI 塔罗牌占卜</title>
+<meta name="description" content="知时塔罗，AI 驱动的在线塔罗牌占卜。选择牌阵，提出问题，即可获得深度 AI 解读。单张指引、时间之流、凯尔特十字——三种经典牌阵任你选择。">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/landing.css">
+</head>
+<body>
+<canvas id="mxhCanvas"></canvas>
+
+<div class="app">
+  <!-- 品牌头部 -->
+  <div class="header">
+    <div class="header-line"></div>
+    <h1>知 时 塔 罗</h1>
+    <p class="tagline">洞见内心 · 照见前路</p>
+  </div>
+
+  <!-- 牌阵选择 -->
+  <div class="card">
+    <div class="spread-grid" id="spreadGrid">
+      <div class="spread-card" data-spread="single">
+        <div class="spread-icon">🔮</div>
+        <h3>单张指引</h3>
+        <p class="spread-count">1 张牌 · 快速洞见</p>
+      </div>
+      <div class="spread-card selected" data-spread="timeFlow">
+        <div class="spread-icon">⏳</div>
+        <h3>时间之流</h3>
+        <p class="spread-count">3 张牌 · 时空全览</p>
+      </div>
+      <div class="spread-card" data-spread="celticCross">
+        <div class="spread-icon">✧</div>
+        <h3>凯尔特十字</h3>
+        <p class="spread-count">10 张牌 · 深度解读</p>
+        <span class="spread-badge">深度</span>
+      </div>
+    </div>
+
+    <!-- 问题输入 -->
+    <div class="question-section">
+      <label class="question-label">你想探索什么问题？</label>
+      <textarea
+        class="question-input"
+        id="questionInput"
+        placeholder="例如：我该如何面对当前的职业困境？&#10;例如：我和TA的关系会如何发展？&#10;例如：接下来三个月我该注意什么？"
+        maxlength="200"
+      ></textarea>
+      <div class="question-hints">
+        <span class="question-hint" data-text="我该如何提升自己的事业发展？">💼 事业</span>
+        <span class="question-hint" data-text="我和心仪的人之间会怎样发展？">💕 感情</span>
+        <span class="question-hint" data-text="我最近需要注意哪些方面的事情？">🌟 运势</span>
+        <span class="question-hint" data-text="我该如何做出更好的财务决策？">💰 财运</span>
+        <span class="question-hint" data-text="我该如何面对当前的人生困惑？">🤔 人生</span>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-section">
+      <button class="btn-primary" id="startBtn">开 始 抽 牌 ▸</button>
+      <p class="cta-desc">AI 深度解读 · 完全免费</p>
+    </div>
+  </div>
+
+  <!-- 牌阵简介 -->
+  <div class="card" style="margin-top:20px;" id="spreadInfo">
+    <div style="text-align:center;">
+      <h3 id="spreadInfoName" style="font-size:18px;letter-spacing:4px;color:var(--violet-light);">时间之流</h3>
+      <p id="spreadInfoDesc" style="font-size:14px;color:var(--text-secondary);margin-top:8px;">最经典的三张牌阵，从过去、现在、未来三个维度为你梳理完整的时空线索。适合大多数问题类型。</p>
+      <div id="spreadInfoPositions" style="margin-top:12px;font-size:13px;color:var(--text-dim);line-height:2;">
+        <span style="color:var(--violet);">① 过去</span> — 影响当前局面的过往因素<br>
+        <span style="color:var(--violet);">② 现在</span> — 当前面临的核心状况<br>
+        <span style="color:var(--violet);">③ 未来</span> — 即将到来的趋势与可能
+      </div>
+    </div>
+  </div>
+
+  <!-- 页脚 -->
+  <div class="footer">
+    <p>知时塔罗 · AI 深度解读</p>
+    <p class="disclaimer">※ 本站内容仅供娱乐交流，不构成任何决策建议。塔罗牌是一种自我探索的工具，请理性看待占卜结果。</p>
+  </div>
+</div>
+
+<script src="js/mo-xing-he.js"></script>
+<script src="js/tarot-data.js"></script>
+<script>
+// 粒子背景
+MoXingHe.start('mxhCanvas');
+
+// 牌阵选择
+var selectedSpread = 'timeFlow';
+var spreadCards = document.querySelectorAll('.spread-card');
+
+spreadCards.forEach(function(card) {
+  card.addEventListener('click', function() {
+    spreadCards.forEach(function(c) { c.classList.remove('selected'); });
+    card.classList.add('selected');
+    selectedSpread = card.dataset.spread;
+    updateSpreadInfo(selectedSpread);
+  });
+});
+
+// 更新牌阵信息
+function updateSpreadInfo(spreadId) {
+  var spread = getSpreadById(spreadId);
+  document.getElementById('spreadInfoName').textContent = spread.name;
+  document.getElementById('spreadInfoDesc').textContent = spread.description;
+  var posHtml = '';
+  spread.positions.forEach(function(pos, i) {
+    posHtml += '<span style="color:var(--violet);">' + (i === 0 ? '①' : i === 1 ? '②' : i === 2 ? '③' : i === 3 ? '④' : i === 4 ? '⑤' : i === 5 ? '⑥' : i === 6 ? '⑦' : i === 7 ? '⑧' : i === 8 ? '⑨' : '⑩') + ' ' + pos.label + '</span> — ' + pos.description + '<br>';
+  });
+  document.getElementById('spreadInfoPositions').innerHTML = posHtml;
+}
+
+// 问题提示点击
+document.querySelectorAll('.question-hint').forEach(function(hint) {
+  hint.addEventListener('click', function() {
+    document.getElementById('questionInput').value = hint.dataset.text;
+    document.getElementById('questionInput').focus();
+  });
+});
+
+// 开始抽牌
+document.getElementById('startBtn').addEventListener('click', function() {
+  var question = document.getElementById('questionInput').value.trim();
+  if (!question) {
+    question = '我的人生近期有什么需要注意的？';
+  }
+  var btn = document.getElementById('startBtn');
+  btn.classList.add('loading');
+  btn.textContent = '准备中...';
+  setTimeout(function() {
+    window.location.href = 'shuffle.html?spread=' + encodeURIComponent(selectedSpread) + '&question=' + encodeURIComponent(question);
+  }, 600);
+});
+</script>
+</body>
+</html>

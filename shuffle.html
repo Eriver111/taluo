@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>抽牌 · 知时塔罗</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/shuffle.css">
+</head>
+<body>
+<canvas id="mxhCanvas"></canvas>
+
+<div class="shuffle-app">
+  <!-- 头部 -->
+  <div class="sh-top">
+    <a href="index.html" class="sh-back">← 返回选择</a>
+    <h1 class="sh-title">知 时 塔 罗</h1>
+  </div>
+
+  <!-- 用户问题 -->
+  <div class="sh-question" id="questionBanner">
+    <span class="sh-q-label">你问的是</span>
+    <span class="sh-q-text" id="questionDisplay"></span>
+  </div>
+
+  <!-- ===== 上方：已选牌位 ===== -->
+  <div class="selected-row" id="selectedRow">
+    <div class="selected-slots" id="selectedSlots">
+      <!-- JS动态生成牌位槽 -->
+    </div>
+    <p class="selected-hint" id="selectedHint">点击下方弧牌选择 <span id="slotCount">3</span> 张</p>
+  </div>
+
+  <!-- ===== 下方：弧形牌扇 ===== -->
+  <div class="arc-stage" id="arcStage">
+    <div class="arc-container" id="arcContainer">
+      <!-- JS动态生成弧形排列的卡牌 -->
+    </div>
+    <!-- 翻页提示 -->
+    <button class="arc-nav arc-nav-left" id="arcNavLeft">◂</button>
+    <button class="arc-nav arc-nav-right" id="arcNavRight">▸</button>
+  </div>
+
+  <!-- ===== 弹出层 ===== -->
+  <div class="popup-overlay" id="popupOverlay">
+    <div class="popup-card-wrap" id="popupCardWrap">
+      <div class="tarot-card-big" id="popupCardBig">
+        <div class="tcb-back">
+          <img class="tcb-img" src="assets/cards/back.svg" alt="卡背">
+        </div>
+        <div class="tcb-front">
+          <img class="tcb-img" id="popupCardImg" src="" alt="塔罗牌">
+          <div class="tcb-info">
+            <div class="tcb-name" id="popupCardName"></div>
+            <div class="tcb-rev" id="popupCardRev"></div>
+          </div>
+        </div>
+      </div>
+      <p class="popup-hint" id="popupHint">再次点击翻开牌面</p>
+    </div>
+    <button class="popup-close" id="popupClose">✕</button>
+  </div>
+
+  <!-- ===== 底部确认 ===== -->
+  <div class="sh-confirm" id="confirmArea">
+    <button class="btn-primary" id="confirmBtn" disabled>确 认 · 查 看 AI 解 读 ▸</button>
+  </div>
+</div>
+
+<!-- 预加载 -->
+<img src="assets/cards/back.svg" style="display:none;">
+
+<script src="js/mo-xing-he.js"></script>
+<script src="js/tarot-data.js"></script>
+<script>
+MoXingHe.start('mxhCanvas');
+
+// ===== 参数 =====
+var params = new URLSearchParams(window.location.search);
+var spreadId = params.get('spread') || 'timeFlow';
+var question = params.get('question') || '';
+if (!question) question = '我的人生近期有什么需要注意的？';
+var spread = getSpreadById(spreadId);
+var requiredCount = spread.cardCount;
+
+document.getElementById('questionDisplay').textContent = question.length > 42 ? question.slice(0,42) + '...' : question;
+document.getElementById('slotCount').textContent = requiredCount;
+
+// ===== 全局状态 =====
+var deckCards = TAROT_CARDS.slice();  // 78张牌数据
+var shuffledIndices = [];              // 洗牌后的索引
+var arcOffset = 0;                    // 弧牌浏览偏移
+var arcVisible = 18;                  // 弧中可见牌数
+var selectedCards = [];               // 已选 [{cardObj, reversed, slotIndex}]
+var poppedCardIndex = -1;             // 当前弹出牌在shuffledIndices中的位置
+var isFlipped = false;                // 弹出牌是否翻面
+var tempReversed = false;             // 弹出牌的临时正逆位
+
+// ===== 初始化 =====
+function init() {
+  // Fisher-Yates 洗牌
+  shuffledIndices = deckCards.map(function(_, i) { return i; });
+  for (var i = shuffledIndices.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = shuffledIndices[i]; shuffledIndices[i] = shuffledIndices[j]; shuffledIndices[j] = tmp;
+  }
+  renderSlots();
+  renderArc();
+}
+
+// ===== 渲染已选牌位槽 =====
+function renderSlots() {
+  var container = document.getElementById('selectedSlots');
+  container.innerHTML = '';
+  for (var i = 0; i < requiredCount; i++) {
+    var pos = spread.positions[i];
+    var slot = document.createElement('div');
+    slot.className = 'slot';
+    slot.dataset.slotIndex = i;
+
+    // 检查是否已有选中的牌
+    var selected = selectedCards.find(function(s) { return s.slotIndex === i; });
+    if (selected) {
+      slot.classList.add('filled');
+      slot.innerHTML =
+        '<img class="slot-img' + (selected.reversed ? ' slot-reversed' : '') + '" src="assets/cards/' + selected.cardObj.id + '.jpg" alt="' + selected.cardObj.name + '" onerror="this.style.display=\'none\'">' +
+        '<div class="slot-img-fallback" style="display:none;">🃏</div>' +
+        '<span class="slot-name">' + selected.cardObj.name + '</span>' +
+        '<span class="slot-pos">' + pos.label + '</span>' +
+        '<span class="slot-rev">' + (selected.reversed ? '逆位' : '正位') + '</span>' +
+        '<button class="slot-remove" data-slot="' + i + '">✕</button>';
+    } else {
+      slot.innerHTML =
+        '<div class="slot-empty">' +
+          '<span class="slot-num">' + (i+1) + '</span>' +
+          '<span class="slot-label">' + pos.label + '</span>' +
+        '</div>';
+    }
+    container.appendChild(slot);
+  }
+
+  // 删除按钮事件
+  container.querySelectorAll('.slot-remove').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var idx = parseInt(this.dataset.slot);
+      removeCard(idx);
+    });
+  });
+
+  document.getElementById('selectedHint').textContent = selectedCards.length >= requiredCount
+    ? '已选满！点击下方确认'
+    : '点击下方弧牌选择 ' + requiredCount + ' 张（已选 ' + selectedCards.length + '）';
+
+  updateConfirmBtn();
+}
+
+function removeCard(slotIndex) {
+  selectedCards = selectedCards.filter(function(s) { return s.slotIndex !== slotIndex; });
+  renderSlots();
+  renderArcMarks();
+}
+
+// ===== 渲染弧形牌扇 =====
+function renderArc() {
+  var container = document.getElementById('arcContainer');
+  container.innerHTML = '';
+
+  var total = shuffledIndices.length;
+  var visible = Math.min(arcVisible, total);
+  var startIdx = arcOffset % total;
+
+  for (var v = 0; v < visible; v++) {
+    var deckIdx = (startIdx + v) % total;
+    var cardIdx = shuffledIndices[deckIdx];
+    var card = deckCards[cardIdx];
+
+    // 计算弧形角度：从 -70° 到 +70°，共 140°
+    var t = visible > 1 ? v / (visible - 1) : 0.5;
+    var angle = (t - 0.5) * 130; // -65° 到 +65°
+
+    var div = document.createElement('div');
+    div.className = 'arc-card';
+    div.dataset.deckIdx = deckIdx;
+    div.style.setProperty('--arc-angle', angle + 'deg');
+    div.style.setProperty('--arc-idx', v - visible/2);
+
+    // 标记已选
+    var isSelected = selectedCards.some(function(s) { return s.cardObj.id === card.id; });
+    if (isSelected) div.classList.add('picked');
+
+    var img = document.createElement('img');
+    img.className = 'arc-card-img';
+    img.src = 'assets/cards/back.svg';
+    img.alt = '塔罗牌';
+    img.draggable = false;
+
+    div.appendChild(img);
+    div.addEventListener('click', function(e) {
+      e.stopPropagation();
+      popCard(parseInt(this.dataset.deckIdx));
+    });
+
+    container.appendChild(div);
+  }
+
+  updateArcNav();
+}
+
+function updateArcNav() {
+  var maxOffset = shuffledIndices.length - 1;
+  document.getElementById('arcNavLeft').style.opacity = arcOffset > 0 ? '1' : '0.25';
+  document.getElementById('arcNavRight').style.opacity = arcOffset < maxOffset - arcVisible ? '1' : '0.25';
+}
+
+function renderArcMarks() {
+  // 更新弧牌中已选的标记
+  document.querySelectorAll('.arc-card').forEach(function(el) {
+    var deckIdx = parseInt(el.dataset.deckIdx);
+    var cardIdx = shuffledIndices[deckIdx];
+    var card = deckCards[cardIdx];
+    var isSelected = selectedCards.some(function(s) { return s.cardObj.id === card.id; });
+    if (isSelected) el.classList.add('picked');
+    else el.classList.remove('picked');
+  });
+}
+
+// 弧牌翻页
+function shiftArc(dir) {
+  var maxOffset = Math.max(0, shuffledIndices.length - arcVisible);
+  arcOffset = Math.max(0, Math.min(maxOffset, arcOffset + dir * 5));
+  renderArc();
+}
+
+document.getElementById('arcNavLeft').addEventListener('click', function() { shiftArc(-1); });
+document.getElementById('arcNavRight').addEventListener('click', function() { shiftArc(1); });
+
+// 滚轮翻页
+document.getElementById('arcStage').addEventListener('wheel', function(e) {
+  e.preventDefault();
+  shiftArc(e.deltaY > 0 ? 1 : -1);
+}, { passive: false });
+
+// 触摸滑动
+(function() {
+  var stage = document.getElementById('arcStage');
+  var startX = 0, dragging = false;
+  stage.addEventListener('touchstart', function(e) {
+    if (e.target.closest('.arc-card')) return;
+    startX = e.touches[0].clientX; dragging = true;
+  });
+  stage.addEventListener('touchmove', function(e) {
+    if (!dragging) return;
+    var dx = startX - e.touches[0].clientX;
+    if (Math.abs(dx) > 40) {
+      shiftArc(dx > 0 ? 1 : -1);
+      startX = e.touches[0].clientX;
+    }
+  });
+  stage.addEventListener('touchend', function() { dragging = false; });
+})();
+
+// ===== 弹出卡片 =====
+function popCard(deckIdx) {
+  if (selectedCards.length >= requiredCount) {
+    // 检查是否已选满
+    var cardIdx = shuffledIndices[deckIdx];
+    var card = deckCards[cardIdx];
+    var already = selectedCards.some(function(s) { return s.cardObj.id === card.id; });
+    if (!already) return; // 已满且不是已选的牌
+  }
+
+  poppedCardIndex = deckIdx;
+  isFlipped = false;
+  tempReversed = Math.random() < 0.5;
+
+  var cardIdx2 = shuffledIndices[deckIdx];
+  var card2 = deckCards[cardIdx2];
+
+  document.getElementById('popupCardImg').src = 'assets/cards/' + card2.id + '.jpg';
+  document.getElementById('popupCardName').textContent = card2.name;
+  document.getElementById('popupCardRev').textContent = tempReversed ? '⬇ 逆位（颠倒）' : '⬆ 正位';
+  document.getElementById('popupCardRev').style.color = tempReversed ? '#ff7070' : 'var(--violet-light)';
+  document.getElementById('popupCardRev').style.fontWeight = tempReversed ? '700' : '400';
+  // 逆位时牌面图片旋转180°
+  var frontFace = document.querySelector('.tcb-front');
+  if (tempReversed) {
+    frontFace.classList.add('reversed-face');
+  } else {
+    frontFace.classList.remove('reversed-face');
+  }
+  document.getElementById('popupCardBig').classList.remove('flipped');
+  document.getElementById('popupHint').textContent = '再次点击翻开牌面';
+  document.getElementById('popupHint').style.display = 'block';
+
+  document.getElementById('popupOverlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function flipCard() {
+  isFlipped = true;
+  document.getElementById('popupCardBig').classList.add('flipped');
+  document.getElementById('popupHint').textContent = '点击选定此牌 · 点空白退回';
+}
+
+function selectCard() {
+  var cardIdx = shuffledIndices[poppedCardIndex];
+  var card = deckCards[cardIdx];
+
+  // 检查已选
+  if (selectedCards.some(function(s) { return s.cardObj.id === card.id; })) {
+    closePopup();
+    return;
+  }
+
+  // 找到第一个空槽位
+  var slotIndex = -1;
+  for (var i = 0; i < requiredCount; i++) {
+    if (!selectedCards.some(function(s) { return s.slotIndex === i; })) {
+      slotIndex = i;
+      break;
+    }
+  }
+  if (slotIndex === -1) { closePopup(); return; }
+
+  selectedCards.push({
+    cardObj: card,
+    reversed: tempReversed,
+    slotIndex: slotIndex
+  });
+
+  closePopup();
+  renderSlots();
+  renderArcMarks();
+}
+
+function closePopup() {
+  document.getElementById('popupOverlay').classList.remove('active');
+  document.body.style.overflow = '';
+  poppedCardIndex = -1;
+  isFlipped = false;
+}
+
+// 弹出层点击事件
+document.getElementById('popupClose').addEventListener('click', function(e) {
+  e.stopPropagation();
+  closePopup();
+});
+
+document.getElementById('popupOverlay').addEventListener('click', function(e) {
+  if (e.target === this) {
+    if (isFlipped) {
+      selectCard();
+    } else {
+      closePopup();
+    }
+  }
+});
+
+document.getElementById('popupCardWrap').addEventListener('click', function(e) {
+  e.stopPropagation();
+  if (!isFlipped) {
+    flipCard();
+  } else {
+    selectCard();
+  }
+});
+
+// ===== 确认按钮 =====
+function updateConfirmBtn() {
+  var btn = document.getElementById('confirmBtn');
+  var filled = selectedCards.length >= requiredCount;
+  btn.disabled = !filled;
+  btn.textContent = filled
+    ? '确 认 · 查 看 AI 解 读 ▸'
+    : '还需选 ' + (requiredCount - selectedCards.length) + ' 张牌';
+}
+
+document.getElementById('confirmBtn').addEventListener('click', function() {
+  if (selectedCards.length < requiredCount) return;
+
+  // 按槽位排序
+  selectedCards.sort(function(a, b) { return a.slotIndex - b.slotIndex; });
+
+  var drawn = selectedCards.map(function(s) {
+    return {
+      cardId: s.cardObj.id,
+      cardName: s.cardObj.name,
+      cardNameEn: s.cardObj.nameEn,
+      arcana: s.cardObj.arcana,
+      suit: s.cardObj.suit,
+      element: s.cardObj.element,
+      reversed: s.reversed,
+      keywords: s.cardObj.keywords,
+      meaning: s.reversed ? s.cardObj.reversed.meaning : s.cardObj.upright.meaning,
+      love: s.reversed ? s.cardObj.reversed.love : s.cardObj.upright.love,
+      career: s.reversed ? s.cardObj.reversed.career : s.cardObj.upright.career,
+      finance: s.reversed ? s.cardObj.reversed.finance : s.cardObj.upright.finance,
+      advice: s.reversed ? s.cardObj.reversed.advice : s.cardObj.upright.advice,
+      positionIndex: s.slotIndex
+    };
+  });
+
+  var cardsParam = encodeCardsToURL(drawn);
+  window.location.href = 'result.html?spread=' + encodeURIComponent(spreadId) +
+    '&question=' + encodeURIComponent(question) +
+    '&cards=' + encodeURIComponent(cardsParam);
+});
+
+// ===== 键盘 =====
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    if (poppedCardIndex >= 0) {
+      if (isFlipped) selectCard();
+      else closePopup();
+    }
+  }
+  if (e.key === 'ArrowLeft') shiftArc(-1);
+  if (e.key === 'ArrowRight') shiftArc(1);
+});
+
+// 启动
+init();
+</script>
+</body>
+</html>
