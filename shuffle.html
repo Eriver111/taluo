@@ -225,47 +225,54 @@ function doRenderArc(withFlyIn) {
   var loopWidth = total * arcCardWidth;
   maxScrollPx = loopWidth;
 
-  // 渲染时每个牌位画一次，位置取模实现循环
-  for (var i = 0; i < total; i++) {
-    var deckIdx = i;
-    var cardIdx = shuffledIndices[deckIdx];
-    var card = deckCards[cardIdx];
+  // 渲染每张牌并在边界处重复前12张和后12张（消除首尾缝隙）
+  var copies = [
+    { deckStart: total - 12, deckEnd: total, offset: -loopWidth },  // 尾牌前置
+    { deckStart: 0, deckEnd: total, offset: 0 },                      // 正常
+    { deckStart: 0, deckEnd: 12, offset: loopWidth }                  // 首牌后置
+  ];
 
-    var div = document.createElement('div');
-    div.className = 'arc-card' + (withFlyIn ? ' fly-in' : '');
-    div.dataset.deckIdx = deckIdx;
-    div.style.left = (i * arcCardWidth) + 'px';
-    if (withFlyIn) {
-      div.style.setProperty('--fly-delay', (i * 0.015) + 's');
+  copies.forEach(function(copy) {
+    for (var i = copy.deckStart; i < copy.deckEnd; i++) {
+      var deckIdx = i % total;
+      var cardIdx = shuffledIndices[deckIdx];
+      var card = deckCards[cardIdx];
+
+      var div = document.createElement('div');
+      div.className = 'arc-card' + (withFlyIn ? ' fly-in' : '') + (copy.offset !== 0 ? ' arc-dup' : '');
+      div.dataset.deckIdx = deckIdx;
+      div.style.left = (i * arcCardWidth + copy.offset) + 'px';
+      if (withFlyIn && copy.offset === 0) {
+        div.style.setProperty('--fly-delay', (i * 0.015) + 's');
+      }
+      div.style.setProperty('--arc-angle', '0deg');
+      div.style.setProperty('--arc-idx', i);
+
+      var isSelected = selectedCards.some(function(s) { return s.cardObj.id === card.id; });
+      if (isSelected) div.classList.add('picked');
+
+      var img = document.createElement('img');
+      img.className = 'arc-card-img';
+      img.src = 'assets/cards/back.svg';
+      img.alt = '塔罗牌';
+      img.draggable = false;
+
+      var numBadge = document.createElement('span');
+      numBadge.className = 'arc-card-num';
+      numBadge.textContent = deckIdx + 1;
+
+      div.appendChild(img);
+      div.appendChild(numBadge);
+
+      div.addEventListener('click', function(e) {
+        if (window.__touchHandled) { window.__touchHandled = false; return; }
+        e.stopPropagation();
+        popCard(parseInt(this.dataset.deckIdx));
+      });
+
+      container.appendChild(div);
     }
-    // 动态弧度：角度在 updateArcPosition 中根据视口位置计算
-    div.style.setProperty('--arc-angle', '0deg');
-    div.style.setProperty('--arc-idx', i);
-
-    var isSelected = selectedCards.some(function(s) { return s.cardObj.id === card.id; });
-    if (isSelected) div.classList.add('picked');
-
-    var img = document.createElement('img');
-    img.className = 'arc-card-img';
-    img.src = 'assets/cards/back.svg';
-    img.alt = '塔罗牌';
-    img.draggable = false;
-
-    var numBadge = document.createElement('span');
-    numBadge.className = 'arc-card-num';
-    numBadge.textContent = deckIdx + 1;
-
-    div.appendChild(img);
-    div.appendChild(numBadge);
-
-    div.addEventListener('click', function(e) {
-      if (window.__touchHandled) { window.__touchHandled = false; return; }
-      e.stopPropagation();
-      popCard(parseInt(this.dataset.deckIdx));
-    });
-
-    container.appendChild(div);
-  }
+  });
 
   updateArcPosition();
 }
@@ -286,22 +293,8 @@ function updateArcPosition() {
 }
 
 function repositionWrappedCards() {
-  var cards = document.querySelectorAll('.arc-card');
-  var loopW = maxScrollPx;
-  if (loopW <= 0) return;
-  var stageW = document.getElementById('arcStage').offsetWidth;
-  cards.forEach(function(el) {
-    var deckIdx = parseInt(el.dataset.deckIdx);
-    var baseX = deckIdx * arcCardWidth;
-    var screenX = baseX - scrollPx;
-    if (screenX > stageW + 300) {
-      el.style.left = (baseX - loopW) + 'px';
-    } else if (screenX < -300) {
-      el.style.left = (baseX + loopW) + 'px';
-    } else {
-      el.style.left = baseX + 'px';
-    }
-  });
+  // 边界副本已在 renderArc 中预置，无需额外移动
+  // 仅需确保角度更新覆盖所有副本
 }
 
 // 动态弧度：视口中心的牌角度=0°，两侧渐增至±35°

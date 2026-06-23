@@ -267,6 +267,9 @@
   will-change: transform;
 }
 
+/* 边界重复牌：无独立动画，不可点击选中标记继承 */
+.arc-card.arc-dup { }
+
 .arc-card:hover {
   filter: brightness(1.15);
   box-shadow: 0 8px 32px rgba(155,109,255,.35), 0 0 60px rgba(155,109,255,.15);
