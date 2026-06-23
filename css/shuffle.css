@@ -339,12 +339,11 @@
 @media(max-width: 480px) {
   .shuffle-app { padding: 20px 8px 32px; }
 
-  /* 头部缩小 */
   .sh-title { font-size: 22px; letter-spacing: 6px; }
   .sh-question { padding: 6px 10px; margin-bottom: 8px; }
   .sh-q-text { font-size: 13px; }
 
-  /* 已选槽位 — 三列并排 */
+  /* 已选槽位 */
   .selected-slots { gap: 6px; }
   .slot {
     min-height: 130px; padding: 8px 4px;
@@ -358,22 +357,21 @@
   .slot-rev { font-size: 9px; }
   .slot-remove { width: 18px; height: 18px; font-size: 9px; top: 4px; right: 4px; }
 
-  /* 弧形牌扇 */
-  .arc-stage { min-height: 240px; margin: 2px 0 8px; }
-  .arc-card { width: 72px; height: 112px; }
+  /* 弧形牌扇 — 牌更大 */
+  .arc-stage { min-height: 290px; margin: 2px 0 8px; }
+  .arc-card { width: 90px; height: 140px; }
   .arc-card:hover {
-    transform: translateX(-50%) rotate(var(--arc-angle)) translateY(-45px) scale(1.12);
+    transform: translateX(-50%) rotate(var(--arc-angle)) translateY(-50px) scale(1.15);
   }
   .arc-nav { width: 28px; height: 36px; bottom: 8px; font-size: 13px; }
 
   /* 弹出卡片 */
-  .tarot-card-big { width: 150px; height: 240px; }
-  .tcb-name { font-size: 15px; letter-spacing: 2px; }
+  .tarot-card-big { width: 170px; height: 270px; }
+  .tcb-name { font-size: 16px; letter-spacing: 2px; }
   .tcb-rev { font-size: 12px; }
   .popup-close { top: 12px; right: 12px; width: 32px; height: 32px; font-size: 15px; }
   .popup-hint { font-size: 12px; letter-spacing: 2px; }
 
-  /* 底部按钮 */
   .sh-confirm { padding-top: 8px; }
 }
 
@@ -384,9 +382,9 @@
   .slot { min-height: 110px; padding: 6px 3px; }
   .slot-img { width: 40px; height: 60px; }
   .slot-name { font-size: 10px; }
-  .arc-card { width: 62px; height: 96px; }
-  .arc-stage { min-height: 200px; }
-  .tarot-card-big { width: 130px; height: 208px; }
-  .tcb-name { font-size: 13px; }
+  .arc-card { width: 76px; height: 118px; }
+  .arc-stage { min-height: 250px; }
+  .tarot-card-big { width: 150px; height: 238px; }
+  .tcb-name { font-size: 14px; }
   .selected-hint { font-size: 10px; }
 }

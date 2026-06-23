@@ -196,7 +196,10 @@ function renderArc() {
     img.draggable = false;
 
     div.appendChild(img);
+
+    // 点击事件（桌面端），移动端由 touch 处理器接管
     div.addEventListener('click', function(e) {
+      if (window.__touchHandled) { window.__touchHandled = false; return; }
       e.stopPropagation();
       popCard(parseInt(this.dataset.deckIdx));
     });
@@ -241,27 +244,64 @@ document.getElementById('arcStage').addEventListener('wheel', function(e) {
   shiftArc(e.deltaY > 0 ? 1 : -1);
 }, { passive: false });
 
-// 触摸滑动
+// 触摸滑动（区分点击和滑动）
 (function() {
   var stage = document.getElementById('arcStage');
-  var startX = 0, dragging = false;
+  var startX = 0, startY = 0, movedX = 0, movedY = 0;
+  var touching = false, cardTarget = null;
+
   stage.addEventListener('touchstart', function(e) {
-    if (e.target.closest('.arc-card')) return;
-    startX = e.touches[0].clientX; dragging = true;
-  });
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    movedX = 0; movedY = 0;
+    touching = true;
+    cardTarget = e.target.closest('.arc-card');
+  }, { passive: false });
+
   stage.addEventListener('touchmove', function(e) {
-    if (!dragging) return;
-    var dx = startX - e.touches[0].clientX;
-    if (Math.abs(dx) > 40) {
-      shiftArc(dx > 0 ? 1 : -1);
-      startX = e.touches[0].clientX;
+    if (!touching) return;
+    movedX = startX - e.touches[0].clientX;
+    movedY = startY - e.touches[0].clientY;
+
+    // 水平滑动超过阈值 → 翻页
+    if (Math.abs(movedX) > 25 && Math.abs(movedX) > Math.abs(movedY)) {
+      e.preventDefault(); // 阻止页面滚动
+      shiftArc(movedX > 0 ? 1 : -1);
+      startX = e.touches[0].clientX; // 重置起点，连续滑动
+      cardTarget = null; // 不再当作点击
     }
+  }, { passive: false });
+
+  stage.addEventListener('touchend', function() {
+    // 如果没有明显滑动，且点在卡片上 → 当作点击
+    if (cardTarget && Math.abs(movedX) < 15 && Math.abs(movedY) < 15) {
+      var deckIdx = parseInt(cardTarget.dataset.deckIdx);
+      if (!isNaN(deckIdx)) {
+        window.__touchHandled = true; // 阻止后续 click 事件
+        popCard(deckIdx);
+      }
+    }
+    touching = false;
+    cardTarget = null;
   });
-  stage.addEventListener('touchend', function() { dragging = false; });
 })();
+
+// ===== 震动反馈 =====
+function vibrate(ms) {
+  if (navigator.vibrate) {
+    navigator.vibrate(ms);
+  }
+}
+
+function vibratePattern(pattern) {
+  if (navigator.vibrate) {
+    navigator.vibrate(pattern);
+  }
+}
 
 // ===== 弹出卡片 =====
 function popCard(deckIdx) {
+  vibrate(10);  // 轻震
   if (selectedCards.length >= requiredCount) {
     // 检查是否已选满
     var cardIdx = shuffledIndices[deckIdx];
@@ -299,6 +339,7 @@ function popCard(deckIdx) {
 
 function flipCard() {
   isFlipped = true;
+  vibrate(15);  // 翻牌震动
   document.getElementById('popupCardBig').classList.add('flipped');
   document.getElementById('popupHint').textContent = '点击选定此牌 · 点空白退回';
 }
@@ -329,6 +370,7 @@ function selectCard() {
     slotIndex: slotIndex
   });
 
+  vibratePattern([15, 30, 15]);  // 双震确认
   closePopup();
   renderSlots();
   renderArcMarks();
