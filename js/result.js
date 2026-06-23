@@ -2,7 +2,7 @@
 
 (function() {
   // 粒子背景
-  MoXingHe.start('mxhCanvas');
+  MoXingHe.start('mxhCanvas', false);
 
   // 解析 URL 参数
   var params = new URLSearchParams(window.location.search);
