@@ -90,7 +90,7 @@ document.getElementById('slotCount').textContent = requiredCount;
 var deckCards = TAROT_CARDS.slice();  // 78张牌数据
 var shuffledIndices = [];              // 洗牌后的索引
 var arcOffset = 0;                    // 弧牌浏览偏移
-var arcVisible = window.innerWidth <= 380 ? 12 : window.innerWidth <= 480 ? 15 : 18;
+var arcVisible = window.innerWidth <= 380 ? 10 : window.innerWidth <= 480 ? 12 : 16;
 var selectedCards = [];               // 已选 [{cardObj, reversed, slotIndex}]
 var poppedCardIndex = -1;             // 当前弹出牌在shuffledIndices中的位置
 var isFlipped = false;                // 弹出牌是否翻面
@@ -195,7 +195,13 @@ function renderArc() {
     img.alt = '塔罗牌';
     img.draggable = false;
 
+    // 序号标签
+    var numBadge = document.createElement('span');
+    numBadge.className = 'arc-card-num';
+    numBadge.textContent = deckIdx + 1;
+
     div.appendChild(img);
+    div.appendChild(numBadge);
 
     // 点击事件（桌面端），移动端由 touch 处理器接管
     div.addEventListener('click', function(e) {
@@ -286,7 +292,7 @@ document.getElementById('arcStage').addEventListener('wheel', function(e) {
   });
 })();
 
-// ===== 震动反馈 =====
+// ===== 震动反馈（Android）+ 视觉脉冲（iOS/桌面） =====
 function vibrate(ms) {
   if (navigator.vibrate) {
     navigator.vibrate(ms);
@@ -299,9 +305,19 @@ function vibratePattern(pattern) {
   }
 }
 
+function visualPulse(element, className) {
+  element.classList.remove(className);
+  void element.offsetWidth; // 强制回流以重启动画
+  element.classList.add(className);
+}
+
 // ===== 弹出卡片 =====
 function popCard(deckIdx) {
-  vibrate(10);  // 轻震
+  vibrate(10);
+  // 视觉脉冲（iOS/桌面兼容）
+  var arcCards = document.querySelectorAll('.arc-card');
+  arcCards.forEach(function(c) { if (parseInt(c.dataset.deckIdx) === deckIdx) visualPulse(c, 'pulse'); });
+
   if (selectedCards.length >= requiredCount) {
     // 检查是否已选满
     var cardIdx = shuffledIndices[deckIdx];
@@ -339,7 +355,8 @@ function popCard(deckIdx) {
 
 function flipCard() {
   isFlipped = true;
-  vibrate(15);  // 翻牌震动
+  vibrate(15);
+  visualPulse(document.getElementById('popupCardBig'), 'pulse-glow');
   document.getElementById('popupCardBig').classList.add('flipped');
   document.getElementById('popupHint').textContent = '点击选定此牌 · 点空白退回';
 }
@@ -370,7 +387,8 @@ function selectCard() {
     slotIndex: slotIndex
   });
 
-  vibratePattern([15, 30, 15]);  // 双震确认
+  vibratePattern([15, 30, 15]);
+  visualPulse(document.getElementById('popupCardBig'), 'pulse-glow');
   closePopup();
   renderSlots();
   renderArcMarks();

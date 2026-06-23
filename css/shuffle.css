@@ -4,73 +4,78 @@
 .shuffle-app {
   position: relative; z-index: 1;
   max-width: 520px; margin: 0 auto;
-  padding: 32px 16px 48px;
-  min-height: 100vh;
+  padding: 24px 12px 20px;
+  height: 100dvh;
+  height: 100vh;
   display: flex; flex-direction: column;
+  overflow: hidden;
   animation: fadeUp 0.8s ease-out;
 }
 
 /* === 头部 === */
 .sh-top {
-  text-align: center; margin-bottom: 10px;
+  text-align: center; margin-bottom: 4px;
+  flex-shrink: 0;
 }
 
 .sh-back {
-  font-size: 12px; color: var(--text-dim);
+  font-size: 11px; color: var(--text-dim);
   letter-spacing: 2px; display: inline-block;
-  margin-bottom: 4px; transition: var(--transition);
+  margin-bottom: 2px; transition: var(--transition);
 }
 
 .sh-back:hover { color: var(--violet-light); }
 
 .sh-title {
   font-family: var(--font-kai);
-  font-size: 28px; letter-spacing: 10px;
+  font-size: 24px; letter-spacing: 8px;
   background: linear-gradient(135deg, var(--violet-dark), var(--violet-light));
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 /* === 问题条 === */
 .sh-question {
-  text-align: center; padding: 8px 14px;
+  text-align: center; padding: 5px 10px;
   background: rgba(155,109,255,.04);
   border: 1px solid var(--border-violet);
   border-radius: var(--radius-sm);
-  margin-bottom: 14px;
+  margin-bottom: 6px;
+  flex-shrink: 0;
 }
 
 .sh-q-label {
-  font-size: 10px; color: var(--text-dim);
+  font-size: 9px; color: var(--text-dim);
   letter-spacing: 3px; display: block;
 }
 
 .sh-q-text {
-  font-size: 14px; color: var(--text-primary);
+  font-size: 12px; color: var(--text-primary);
   font-style: italic; letter-spacing: 1px;
 }
 
 /* ===== 上方：已选牌位 ===== */
 .selected-row {
-  margin-bottom: 10px;
+  margin-bottom: 6px;
+  flex-shrink: 0;
 }
 
 .selected-slots {
-  display: flex; gap: 10px; justify-content: center;
+  display: flex; gap: 6px; justify-content: center;
   overflow-x: auto; -webkit-overflow-scrolling: touch;
-  padding-bottom: 4px;
+  padding-bottom: 2px;
 }
 
 .slot {
-  flex: 1; max-width: 150px;
-  min-height: 200px;
+  flex: 1; max-width: 120px;
+  min-height: 100px;
   border: 1px dashed rgba(155,109,255,.2);
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   display: flex; flex-direction: column; align-items: center;
-  justify-content: center; gap: 4px;
+  justify-content: center; gap: 2px;
   transition: var(--transition);
-  position: relative; padding: 10px 6px;
+  position: relative; padding: 6px 4px;
   background: rgba(0,0,0,.1);
 }
 
@@ -146,17 +151,16 @@
 /* ===== 下方：弧形牌扇 ===== */
 .arc-stage {
   position: relative; flex: 1;
-  min-height: 340px;
   display: flex; align-items: flex-end; justify-content: center;
   overflow: hidden;
-  margin: 4px 0 12px;
+  margin: 2px 0 6px;
+  min-height: 0;
 }
 
 .arc-container {
   position: relative;
   width: 100%; height: 100%;
   display: flex; align-items: flex-end; justify-content: center;
-  padding-bottom: 0;
 }
 
 /* 弧形卡牌 */
@@ -165,13 +169,13 @@
   bottom: 0;
   left: 50%;
   width: 115px; height: 175px;
-  transform-origin: 50% 110%;  /* 旋转中心在牌底部下方 */
+  transform-origin: 50% 110%;
   transform: translateX(-50%) rotate(var(--arc-angle)) translateY(-20px);
   z-index: calc(var(--arc-idx, 0) + 10);
   cursor: pointer;
-  border-radius: 10px; overflow: hidden;
+  border-radius: 10px; overflow: visible;
   box-shadow: 0 4px 20px rgba(0,0,0,.5);
-  transition: transform 0.3s ease, filter 0.3s ease, z-index 0s;
+  transition: transform 0.3s ease, filter 0.3s ease, box-shadow 0.3s ease, z-index 0s;
   will-change: transform;
 }
 
@@ -179,7 +183,12 @@
   transform: translateX(-50%) rotate(var(--arc-angle)) translateY(-70px) scale(1.18);
   z-index: 100 !important;
   filter: brightness(1.15);
-  box-shadow: 0 8px 32px rgba(155,109,255,.25);
+  box-shadow: 0 8px 32px rgba(155,109,255,.35), 0 0 60px rgba(155,109,255,.15);
+}
+
+.arc-card:active {
+  transform: translateX(-50%) rotate(var(--arc-angle)) translateY(-70px) scale(1.18);
+  filter: brightness(1.3);
 }
 
 .arc-card.picked {
@@ -187,11 +196,37 @@
   pointer-events: none;
 }
 
+/* 视觉脉冲动画（替代震动，用于不支持vibrate的设备） */
+@keyframes cardPulse {
+  0% { box-shadow: 0 0 0 0 rgba(155,109,255,.6); }
+  50% { box-shadow: 0 0 0 18px rgba(155,109,255,0); }
+  100% { box-shadow: 0 0 0 0 rgba(155,109,255,0); }
+}
+
+.arc-card.pulse {
+  animation: cardPulse 0.4s ease-out;
+}
+
 .arc-card-img {
   width: 100%; height: 100%;
   object-fit: cover; display: block;
+  border-radius: 10px;
   user-select: none; -webkit-user-select: none;
   -webkit-user-drag: none;
+}
+
+/* 序号标签 */
+.arc-card-num {
+  position: absolute; top: -6px; left: -6px;
+  width: 22px; height: 22px;
+  background: rgba(155,109,255,.85);
+  color: #fff; font-size: 11px; font-weight: 700;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 5;
+  box-shadow: 0 2px 8px rgba(0,0,0,.5);
+  pointer-events: none;
+  letter-spacing: 0;
 }
 
 /* 无图片回退 */
@@ -326,9 +361,24 @@
   color: #fff;
 }
 
+/* 弹出卡片视觉脉冲 */
+.tarot-card-big.pulse-glow {
+  animation: popupPulse 0.5s ease-out;
+}
+
+@keyframes popupPulse {
+  0% { box-shadow: 0 0 0 0 rgba(155,109,255,.7), 0 8px 48px rgba(155,109,255,.2); }
+  50% { box-shadow: 0 0 0 24px rgba(155,109,255,0), 0 8px 60px rgba(155,109,255,.4); }
+  100% { box-shadow: 0 0 0 0 rgba(155,109,255,0), 0 8px 48px rgba(155,109,255,.2); }
+}
+
 /* ===== 底部确认 ===== */
 .sh-confirm {
-  margin-top: auto; padding-top: 12px;
+  flex-shrink: 0; padding-top: 6px;
+}
+
+.sh-confirm .btn-primary {
+  padding: 14px; font-size: 15px; letter-spacing: 4px;
 }
 
 .sh-confirm .btn-primary:disabled {
@@ -336,55 +386,65 @@
 }
 
 /* ===== 响应式 ===== */
-@media(max-width: 480px) {
-  .shuffle-app { padding: 20px 8px 32px; }
+/* 桌面端默认已是 115×175 的牌 */
 
-  .sh-title { font-size: 22px; letter-spacing: 6px; }
-  .sh-question { padding: 6px 10px; margin-bottom: 8px; }
-  .sh-q-text { font-size: 13px; }
-
-  /* 已选槽位 */
-  .selected-slots { gap: 6px; }
-  .slot {
-    min-height: 130px; padding: 8px 4px;
-    max-width: none; flex: 1 1 0;
-  }
-  .slot-num { font-size: 22px; }
-  .slot-label { font-size: 10px; letter-spacing: 1px; }
-  .slot-img { width: 48px; height: 72px; }
-  .slot-name { font-size: 11px; }
-  .slot-pos { font-size: 9px; }
-  .slot-rev { font-size: 9px; }
-  .slot-remove { width: 18px; height: 18px; font-size: 9px; top: 4px; right: 4px; }
-
-  /* 弧形牌扇 — 牌更大 */
-  .arc-stage { min-height: 290px; margin: 2px 0 8px; }
-  .arc-card { width: 90px; height: 140px; }
-  .arc-card:hover {
-    transform: translateX(-50%) rotate(var(--arc-angle)) translateY(-50px) scale(1.15);
-  }
-  .arc-nav { width: 28px; height: 36px; bottom: 8px; font-size: 13px; }
-
-  /* 弹出卡片 */
-  .tarot-card-big { width: 170px; height: 270px; }
-  .tcb-name { font-size: 16px; letter-spacing: 2px; }
-  .tcb-rev { font-size: 12px; }
-  .popup-close { top: 12px; right: 12px; width: 32px; height: 32px; font-size: 15px; }
-  .popup-hint { font-size: 12px; letter-spacing: 2px; }
-
-  .sh-confirm { padding-top: 8px; }
+/* 平板/大手机 — 略小 */
+@media(max-width: 520px) {
+  .arc-card { width: 100px; height: 155px; }
+  .tarot-card-big { width: 190px; height: 300px; }
 }
 
-/* 小屏手机 (iPhone SE 等 375px) */
-@media(max-width: 380px) {
-  .shuffle-app { padding: 14px 6px 24px; }
-  .sh-title { font-size: 20px; letter-spacing: 4px; }
-  .slot { min-height: 110px; padding: 6px 3px; }
-  .slot-img { width: 40px; height: 60px; }
+/* 主流手机 390-480px */
+@media(max-width: 480px) {
+  .shuffle-app { padding: 14px 6px 14px; }
+
+  .sh-title { font-size: 20px; letter-spacing: 5px; }
+  .sh-question { padding: 4px 8px; }
+  .sh-q-text { font-size: 11px; }
+
+  /* 已选槽位 — 紧凑 */
+  .selected-slots { gap: 4px; }
+  .slot {
+    min-height: 85px; padding: 5px 3px;
+    max-width: none; flex: 1 1 0;
+  }
+  .slot-num { font-size: 18px; }
+  .slot-label { font-size: 9px; letter-spacing: 1px; }
+  .slot-img { width: 42px; height: 64px; }
   .slot-name { font-size: 10px; }
-  .arc-card { width: 76px; height: 118px; }
-  .arc-stage { min-height: 250px; }
-  .tarot-card-big { width: 150px; height: 238px; }
-  .tcb-name { font-size: 14px; }
-  .selected-hint { font-size: 10px; }
+  .slot-pos { font-size: 8px; }
+  .slot-rev { font-size: 8px; }
+  .slot-remove { width: 16px; height: 16px; font-size: 8px; top: 3px; right: 3px; }
+
+  /* 弧形牌扇 — 撑满屏幕下方 */
+  .arc-card { width: 100px; height: 155px; }
+  .arc-card:hover {
+    transform: translateX(-50%) rotate(var(--arc-angle)) translateY(-55px) scale(1.13);
+  }
+  .arc-card-num { width: 20px; height: 20px; font-size: 10px; top: -5px; left: -5px; }
+  .arc-nav { width: 24px; height: 30px; bottom: 6px; font-size: 12px; }
+
+  /* 弹出卡片 */
+  .tarot-card-big { width: 200px; height: 315px; }
+  .tcb-name { font-size: 17px; }
+  .tcb-rev { font-size: 13px; }
+  .popup-close { top: 10px; right: 10px; width: 30px; height: 30px; font-size: 14px; }
+  .popup-hint { font-size: 12px; }
+
+  .sh-confirm .btn-primary { padding: 12px; font-size: 14px; letter-spacing: 3px; }
+}
+
+/* 小屏手机 (iPhone SE 375px) */
+@media(max-width: 380px) {
+  .shuffle-app { padding: 10px 4px 10px; }
+  .sh-title { font-size: 18px; letter-spacing: 3px; }
+  .sh-back { font-size: 10px; }
+  .slot { min-height: 75px; padding: 4px 2px; }
+  .slot-img { width: 36px; height: 54px; }
+  .slot-name { font-size: 9px; }
+  .arc-card { width: 88px; height: 136px; }
+  .arc-card-num { width: 18px; height: 18px; font-size: 9px; }
+  .tarot-card-big { width: 170px; height: 270px; }
+  .tcb-name { font-size: 15px; }
+  .selected-hint { font-size: 9px; }
 }
