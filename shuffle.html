@@ -100,7 +100,7 @@ document.getElementById('slotCount').textContent = requiredCount;
 // ===== 全局状态 =====
 var deckCards = TAROT_CARDS.slice();
 var shuffledIndices = [];
-var arcCardWidth = window.innerWidth <= 380 ? 95 : window.innerWidth <= 480 ? 110 : 125; // 单牌占宽（含重叠）
+var arcCardWidth = window.innerWidth <= 380 ? 42 : window.innerWidth <= 480 ? 48 : 52;
 var scrollPx = 0;                    // 像素级滚动位置
 var maxScrollPx = 0;                 // 最大滚动范围
 var selectedCards = [];
@@ -236,6 +236,10 @@ function doRenderArc(withFlyIn) {
     if (withFlyIn) {
       div.style.setProperty('--fly-delay', (i * 0.015) + 's');
     }
+    // 固定弧形角度（不随滚动变化，大幅提升性能）
+    var t = total > 1 ? i / (total - 1) : 0.5;
+    var fixedAngle = (t - 0.5) * 130;
+    div.style.setProperty('--arc-angle', fixedAngle + 'deg');
     div.style.setProperty('--arc-idx', i);
 
     var isSelected = selectedCards.some(function(s) { return s.cardObj.id === card.id; });
@@ -267,28 +271,18 @@ function doRenderArc(withFlyIn) {
 }
 
 function updateArcPosition() {
+  // 只更新容器位移（极轻量，一次DOM操作）
   var container = document.getElementById('arcContainer');
-  // 更新滚动位置
   container.style.transform = 'translateX(' + (-scrollPx) + 'px)';
+  // 角度和z-index固定不变（renderArc时已设置）
+}
 
-  // 动态计算每张牌的弧度和角度
-  var stageEl = document.getElementById('arcStage');
-  var stageW = stageEl.offsetWidth;
-  var centerX = stageW / 2;
-
+function renderArcMarks() {
+  // 只更新选中标记
+  var container = document.getElementById('arcContainer');
   var cards = container.querySelectorAll('.arc-card');
   cards.forEach(function(el) {
     var deckIdx = parseInt(el.dataset.deckIdx);
-    var cardLeft = deckIdx * arcCardWidth - scrollPx;
-    var cardCenterX = cardLeft + arcCardWidth / 2;
-    var distFromCenter = (cardCenterX - centerX) / stageW; // -0.5 到 +0.5
-    // 弧形角度：越靠边角度越大
-    var angle = distFromCenter * 120; // 最大 ±60°
-    var clampedAngle = Math.max(-75, Math.min(75, angle));
-    el.style.setProperty('--arc-angle', clampedAngle + 'deg');
-    // z-index：中间的牌在最上面
-    el.style.zIndex = Math.round(50 - Math.abs(distFromCenter) * 60);
-    // 选中标记（需要重新应用因为重建了DOM）
     var cardIdx = shuffledIndices[deckIdx];
     var card = deckCards[cardIdx];
     var selected = selectedCards.some(function(s) { return s.cardObj.id === card.id; });
@@ -297,14 +291,10 @@ function updateArcPosition() {
   });
 }
 
-function renderArcMarks() {
-  updateArcPosition();
-}
-
-// 更新滚动位置（带动画）
+// 更新滚动位置（桌面按钮/滚轮）
 function scrollTo(px) {
   scrollPx = Math.max(0, Math.min(maxScrollPx, px));
-  updateArcPosition();
+  document.getElementById('arcContainer').style.transform = 'translateX(' + (-scrollPx) + 'px)';
 }
 
 // 桌面按钮
@@ -332,12 +322,13 @@ document.getElementById('arcStage').addEventListener('wheel', function(e) {
 
   function startMomentum() {
     stopMomentum();
-    if (Math.abs(velocity) < 0.3) return; // 太慢不惯
+    if (Math.abs(velocity) < 0.3) return;
+    var c = cont;
     function step() {
       scrollPx -= velocity;
-      velocity *= 0.94; // 摩擦系数
+      velocity *= 0.94;
       scrollPx = Math.max(0, Math.min(maxScrollPx, scrollPx));
-      updateArcPosition();
+      c.style.transform = 'translateX(' + (-scrollPx) + 'px)';
       if (Math.abs(velocity) > 0.1 && scrollPx > 0 && scrollPx < maxScrollPx) {
         momentumId = requestAnimationFrame(step);
       }
@@ -363,30 +354,28 @@ document.getElementById('arcStage').addEventListener('wheel', function(e) {
     movedX = startX - curX;
     movedY = startY - curY;
 
-    // 总是跟手滑动（即使竖直分量大，也跟手移动弧牌）
     e.preventDefault();
-    var newScroll = startScroll + movedX;
-    scrollPx = Math.max(-30, Math.min(maxScrollPx + 30, newScroll));
-    updateArcPosition();
+    scrollPx = Math.max(-30, Math.min(maxScrollPx + 30, startScroll + movedX));
+    // 直接设置 transform，不触发函数调用（极致性能）
+    document.getElementById('arcContainer').style.transform = 'translateX(' + (-scrollPx) + 'px)';
 
-    // 计算速度
     var now = Date.now();
     var dt = now - lastTime;
     if (dt > 5) {
-      velocity = (lastX - curX) / dt * 16; // 每帧像素
+      velocity = (lastX - curX) / dt * 16;
       lastX = curX; lastTime = now;
     }
-
-    if (Math.abs(movedX) > 10) cardTarget = null; // 滑动了就不是点击
+    if (Math.abs(movedX) > 8) cardTarget = null;
   }, { passive: false });
+
+  var cont = document.getElementById('arcContainer');
 
   stage.addEventListener('touchend', function() {
     touching = false;
-    // 松手时弹回边界
-    if (scrollPx < 0) { scrollPx = 0; updateArcPosition(); velocity = 0; }
-    if (scrollPx > maxScrollPx) { scrollPx = maxScrollPx; updateArcPosition(); velocity = 0; }
+    if (scrollPx < 0) { scrollPx = 0; velocity = 0; }
+    if (scrollPx > maxScrollPx) { scrollPx = maxScrollPx; velocity = 0; }
+    cont.style.transform = 'translateX(' + (-scrollPx) + 'px)';
 
-    // 点击判断：移动 < 8px
     if (cardTarget && Math.abs(movedX) < 8 && Math.abs(movedY) < 8) {
       var deckIdx = parseInt(cardTarget.dataset.deckIdx);
       if (!isNaN(deckIdx)) {
@@ -394,7 +383,6 @@ document.getElementById('arcStage').addEventListener('wheel', function(e) {
         popCard(deckIdx);
       }
     } else {
-      // 惯性
       startMomentum();
     }
     cardTarget = null;
