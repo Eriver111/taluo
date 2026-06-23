@@ -100,7 +100,7 @@ document.getElementById('slotCount').textContent = requiredCount;
 // ===== 全局状态 =====
 var deckCards = TAROT_CARDS.slice();
 var shuffledIndices = [];
-var arcCardWidth = window.innerWidth <= 380 ? 42 : window.innerWidth <= 480 ? 48 : 52;
+var arcCardWidth = window.innerWidth <= 380 ? 24 : window.innerWidth <= 480 ? 26 : 30;
 var scrollPx = 0;                    // 像素级滚动位置
 var maxScrollPx = 0;                 // 最大滚动范围
 var selectedCards = [];
@@ -236,9 +236,9 @@ function doRenderArc(withFlyIn) {
     if (withFlyIn) {
       div.style.setProperty('--fly-delay', (i * 0.015) + 's');
     }
-    // 固定弧形角度：桌面半圈，左牌倾右(+)，右牌倾左(-)，向心汇聚
+    // 手持扇形：所有牌从共同握点辐射，越靠边转角越大
     var t = total > 1 ? i / (total - 1) : 0.5;
-    var fixedAngle = (0.5 - t) * 140;
+    var fixedAngle = (t - 0.5) * 100;
     div.style.setProperty('--arc-angle', fixedAngle + 'deg');
     div.style.setProperty('--arc-idx', i);
 
