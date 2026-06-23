@@ -33,10 +33,21 @@
 
   <!-- ===== 下方：弧形牌扇 ===== -->
   <div class="arc-stage" id="arcStage">
+    <!-- 洗牌动画牌堆 -->
+    <div class="shuffle-deck" id="shuffleDeck">
+      <div class="shuffle-deck-card" style="--sd:0;"></div>
+      <div class="shuffle-deck-card" style="--sd:1;"></div>
+      <div class="shuffle-deck-card" style="--sd:2;"></div>
+      <div class="shuffle-deck-card" style="--sd:3;"></div>
+      <div class="shuffle-deck-card" style="--sd:4;"></div>
+      <div class="shuffle-deck-card" style="--sd:5;"></div>
+      <div class="shuffle-deck-card" style="--sd:6;"></div>
+      <div class="shuffle-deck-card" style="--sd:7;"></div>
+    </div>
+    <div class="shuffle-label" id="shuffleLabel">正在洗牌...</div>
     <div class="arc-container" id="arcContainer">
       <!-- JS动态生成弧形排列的卡牌 -->
     </div>
-    <!-- 翻页提示 -->
     <button class="arc-nav arc-nav-left" id="arcNavLeft">◂</button>
     <button class="arc-nav arc-nav-right" id="arcNavRight">▸</button>
   </div>
@@ -112,7 +123,39 @@ function init() {
     var tmp = shuffledIndices[i]; shuffledIndices[i] = shuffledIndices[j]; shuffledIndices[j] = tmp;
   }
   renderSlots();
-  renderArc();
+
+  // 播放洗牌动画 → 展开弧牌
+  playShuffleIntro();
+}
+
+function playShuffleIntro() {
+  var deck = document.getElementById('shuffleDeck');
+  var label = document.getElementById('shuffleLabel');
+  var container = document.getElementById('arcContainer');
+  container.style.opacity = '0';
+
+  // 2.5秒洗牌动画后展开
+  setTimeout(function() {
+    deck.classList.add('done');
+    label.classList.add('done');
+
+    // 渲染弧牌（带飞入动画）
+    renderArcWithFlyIn();
+
+    // 动画总时长 = 最后一张牌延迟 + 动画时长 + buffer
+    var totalCards = shuffledIndices.length;
+    var animDuration = totalCards * 0.015 * 1000 + 700;
+
+    setTimeout(function() {
+      deck.style.display = 'none';
+      label.style.display = 'none';
+      container.style.opacity = '1';
+      // 清除飞入动画，恢复正常弧位
+      var cards = container.querySelectorAll('.arc-card');
+      cards.forEach(function(c) { c.classList.remove('fly-in'); c.style.opacity = ''; });
+      updateArcPosition();
+    }, animDuration);
+  }, 2200);
 }
 
 // ===== 渲染已选牌位槽 =====
@@ -169,7 +212,10 @@ function removeCard(slotIndex) {
 }
 
 // ===== 渲染弧形牌扇（像素级自由滚动） =====
-function renderArc() {
+function renderArc() { doRenderArc(false); }
+function renderArcWithFlyIn() { doRenderArc(true); }
+
+function doRenderArc(withFlyIn) {
   var container = document.getElementById('arcContainer');
   container.innerHTML = '';
 
@@ -184,12 +230,12 @@ function renderArc() {
     var card = deckCards[cardIdx];
 
     var div = document.createElement('div');
-    div.className = 'arc-card';
+    div.className = 'arc-card' + (withFlyIn ? ' fly-in' : '');
     div.dataset.deckIdx = deckIdx;
-    // 每张牌的像素位置
     div.style.left = (i * arcCardWidth) + 'px';
-
-    // 弧形角度（基于牌在视口中心的位置动态计算）
+    if (withFlyIn) {
+      div.style.setProperty('--fly-delay', (i * 0.015) + 's');
+    }
     div.style.setProperty('--arc-idx', i);
 
     var isSelected = selectedCards.some(function(s) { return s.cardObj.id === card.id; });
