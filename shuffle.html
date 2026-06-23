@@ -90,7 +90,7 @@ document.getElementById('slotCount').textContent = requiredCount;
 var deckCards = TAROT_CARDS.slice();  // 78张牌数据
 var shuffledIndices = [];              // 洗牌后的索引
 var arcOffset = 0;                    // 弧牌浏览偏移
-var arcVisible = 18;                  // 弧中可见牌数
+var arcVisible = window.innerWidth <= 380 ? 12 : window.innerWidth <= 480 ? 15 : 18;
 var selectedCards = [];               // 已选 [{cardObj, reversed, slotIndex}]
 var poppedCardIndex = -1;             // 当前弹出牌在shuffledIndices中的位置
 var isFlipped = false;                // 弹出牌是否翻面

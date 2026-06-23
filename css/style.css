@@ -59,6 +59,8 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   line-height: 1.7;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 a { color: var(--violet-light); text-decoration: none; transition: var(--transition); }
@@ -269,12 +271,23 @@ a:hover { color: var(--violet); }
 }
 
 /* ===== 响应式 ===== */
-@media(max-width: 400px) {
-  .app { padding: 36px 14px 52px; }
-  .card { padding: 28px 18px 26px; border-radius: var(--radius); }
-  .header h1 { font-size: 38px; letter-spacing: 14px; }
-  .header .tagline { font-size: 13px; letter-spacing: 6px; }
+@media(max-width: 480px) {
+  html { font-size: 15px; }
+  .app { max-width: 100%; padding: 28px 12px 48px; }
+  .card { padding: 24px 14px 22px; border-radius: var(--radius); }
+  .header h1 { font-size: 34px; letter-spacing: 10px; }
+  .header .tagline { font-size: 12px; letter-spacing: 4px; }
   .btn-primary { font-size: 15px; letter-spacing: 4px; padding: 14px; }
+  .drawer-toggle { padding: 12px 14px; }
+  .drawer-toggle h3 { font-size: 14px; letter-spacing: 2px; }
+  .drawer-content { padding: 14px 12px; font-size: 14px; }
+}
+
+@media(max-width: 360px) {
+  html { font-size: 14px; }
+  .app { padding: 20px 8px 36px; }
+  .card { padding: 18px 10px 16px; }
+  .header h1 { font-size: 28px; letter-spacing: 6px; }
 }
 
 /* ===== 骨架屏 ===== */

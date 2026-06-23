@@ -58,6 +58,8 @@
 
 .selected-slots {
   display: flex; gap: 10px; justify-content: center;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
 }
 
 .slot {
@@ -334,12 +336,57 @@
 }
 
 /* ===== 响应式 ===== */
-@media(max-width: 400px) {
-  .shuffle-app { padding: 24px 10px 36px; }
-  .sh-title { font-size: 24px; letter-spacing: 6px; }
-  .slot { min-height: 150px; }
-  .slot-img { width: 56px; height: 84px; }
-  .arc-card { width: 85px; height: 130px; }
-  .arc-stage { min-height: 260px; }
-  .tarot-card-big { width: 160px; height: 250px; }
+@media(max-width: 480px) {
+  .shuffle-app { padding: 20px 8px 32px; }
+
+  /* 头部缩小 */
+  .sh-title { font-size: 22px; letter-spacing: 6px; }
+  .sh-question { padding: 6px 10px; margin-bottom: 8px; }
+  .sh-q-text { font-size: 13px; }
+
+  /* 已选槽位 — 三列并排 */
+  .selected-slots { gap: 6px; }
+  .slot {
+    min-height: 130px; padding: 8px 4px;
+    max-width: none; flex: 1 1 0;
+  }
+  .slot-num { font-size: 22px; }
+  .slot-label { font-size: 10px; letter-spacing: 1px; }
+  .slot-img { width: 48px; height: 72px; }
+  .slot-name { font-size: 11px; }
+  .slot-pos { font-size: 9px; }
+  .slot-rev { font-size: 9px; }
+  .slot-remove { width: 18px; height: 18px; font-size: 9px; top: 4px; right: 4px; }
+
+  /* 弧形牌扇 */
+  .arc-stage { min-height: 240px; margin: 2px 0 8px; }
+  .arc-card { width: 72px; height: 112px; }
+  .arc-card:hover {
+    transform: translateX(-50%) rotate(var(--arc-angle)) translateY(-45px) scale(1.12);
+  }
+  .arc-nav { width: 28px; height: 36px; bottom: 8px; font-size: 13px; }
+
+  /* 弹出卡片 */
+  .tarot-card-big { width: 150px; height: 240px; }
+  .tcb-name { font-size: 15px; letter-spacing: 2px; }
+  .tcb-rev { font-size: 12px; }
+  .popup-close { top: 12px; right: 12px; width: 32px; height: 32px; font-size: 15px; }
+  .popup-hint { font-size: 12px; letter-spacing: 2px; }
+
+  /* 底部按钮 */
+  .sh-confirm { padding-top: 8px; }
+}
+
+/* 小屏手机 (iPhone SE 等 375px) */
+@media(max-width: 380px) {
+  .shuffle-app { padding: 14px 6px 24px; }
+  .sh-title { font-size: 20px; letter-spacing: 4px; }
+  .slot { min-height: 110px; padding: 6px 3px; }
+  .slot-img { width: 40px; height: 60px; }
+  .slot-name { font-size: 10px; }
+  .arc-card { width: 62px; height: 96px; }
+  .arc-stage { min-height: 200px; }
+  .tarot-card-big { width: 130px; height: 208px; }
+  .tcb-name { font-size: 13px; }
+  .selected-hint { font-size: 10px; }
 }

@@ -138,10 +138,20 @@
 }
 
 /* 响应式 */
-@media(max-width: 400px) {
-  .spread-grid { flex-direction: column; gap: 10px; }
-  .spread-card { padding: 16px; }
-  .spread-icon { font-size: 26px; }
+@media(max-width: 480px) {
+  .spread-grid { gap: 8px; }
+  .spread-card { padding: 14px 8px; }
+  .spread-card h3 { font-size: 13px; letter-spacing: 2px; }
+  .spread-icon { font-size: 24px; }
+  .spread-count { font-size: 10px; }
+  .question-input { min-height: 80px; font-size: 14px; padding: 12px; }
   .question-hints { gap: 6px; }
   .question-hint { font-size: 11px; padding: 4px 10px; }
+}
+
+@media(max-width: 370px) {
+  .spread-grid { flex-direction: column; gap: 8px; }
+  .spread-card { display: flex; align-items: center; gap: 10px; padding: 12px 14px; text-align: left; }
+  .spread-icon { font-size: 22px; margin-bottom: 0; }
+  .spread-badge { margin-top: 0; margin-left: auto; }
 }

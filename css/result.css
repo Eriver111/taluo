@@ -207,10 +207,27 @@
 }
 
 /* 响应式 */
-@media(max-width: 400px) {
-  .result-container { padding: 28px 14px 56px; }
-  .card-strip { gap: 10px; }
-  .card-mini { width: 100px; padding: 12px 8px; }
-  .card-mini .mini-name { font-size: 12px; }
-  .result-header .user-question { font-size: 15px; padding: 12px 14px; }
+@media(max-width: 480px) {
+  .result-container { max-width: 100%; padding: 24px 10px 48px; }
+  .result-header { margin-bottom: 18px; }
+  .result-header .user-question { font-size: 14px; padding: 10px 12px; }
+  .card-strip { gap: 8px; padding: 4px 2px 10px; }
+  .card-mini { width: 90px; padding: 10px 6px; }
+  .card-mini .mini-img { width: 60px; height: 90px; }
+  .card-mini .mini-name { font-size: 12px; letter-spacing: 1px; }
+  .card-mini .mini-pos { font-size: 10px; }
+  .ai-reading .overall-reading { font-size: 14px; padding: 16px 4px; }
+  .card-reading-text { font-size: 14px; }
+  .drawer-toggle { padding: 10px 12px; }
+  .drawer-toggle h3 { font-size: 14px; }
+  .drawer-content { padding: 12px 10px; }
+  .share-section { margin-top: 20px; }
+}
+
+@media(max-width: 380px) {
+  .result-container { padding: 16px 6px 36px; }
+  .card-mini { width: 75px; padding: 8px 4px; }
+  .card-mini .mini-img { width: 48px; height: 72px; }
+  .card-mini .mini-name { font-size: 11px; }
+  .result-header .user-question { font-size: 13px; }
 }
