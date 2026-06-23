@@ -164,9 +164,16 @@ function renderSlots() {
           '<span class="slot-pos">' + pos.label + '</span>' +
           '<button class="slot-remove" data-slot="' + i + '">✕</button>';
       } else {
-        // 未翻牌：只显示卡背
+        // 未翻牌：显示卡背，但内置隐藏的正面供翻牌动画使用
         slot.innerHTML =
-          '<img class="slot-img-back" src="assets/cards/back.svg" alt="卡背">' +
+          '<div class="slot-card-inner">' +
+            '<div class="slot-card-back"><img src="assets/cards/back.svg" alt="卡背"></div>' +
+            '<div class="slot-card-front">' +
+              '<img src="assets/cards/' + selected.cardObj.id + '.jpg" alt="' + selected.cardObj.name + '">' +
+              '<span class="slot-front-name">' + selected.cardObj.name + '</span>' +
+              '<span class="slot-front-rev">' + (selected.reversed ? '逆位' : '正位') + '</span>' +
+            '</div>' +
+          '</div>' +
           '<span class="slot-pos">' + pos.label + '</span>' +
           '<button class="slot-remove" data-slot="' + i + '">✕</button>';
       }
@@ -470,32 +477,31 @@ function selectFromArc(deckIdx) {
   updateFlipBtn();
 }
 
-// ===== 统一翻牌 =====
+// ===== 统一翻牌（一张一张揭示） =====
 document.getElementById('flipBtn').addEventListener('click', function() {
   if (selectedCards.length < requiredCount || flipped) return;
   flipped = true;
   vibrate(15);
+  updateFlipBtn();
+  document.getElementById('selectedHint').textContent = '正在揭示牌面...';
 
-  // 逐张翻转槽位中的牌
+  // 逐张翻转：加 revealed 类触发3D翻转
   var slots = document.querySelectorAll('.slot.filled');
   slots.forEach(function(slot, i) {
     setTimeout(function() {
       slot.classList.add('revealed');
-      vibrate(8);
-    }, i * 600);
+      vibrate(10);
+    }, i * 700);
   });
 
-  // 翻完后重渲染（显示牌面+名字+逆位），显示 AI 按钮
-  var totalDelay = slots.length * 600 + 400;
+  // 全部翻完后显示 AI 按钮
+  var totalDelay = slots.length * 700 + 500;
   setTimeout(function() {
-    renderSlots();
     document.getElementById('flipBtn').style.display = 'none';
-    var aiBtn = document.getElementById('aiBtn');
-    aiBtn.style.display = 'block';
+    document.getElementById('aiBtn').style.display = 'block';
+    document.getElementById('selectedHint').textContent = '牌面已全部揭示';
     vibratePattern([15, 40, 20]);
   }, totalDelay);
-
-  updateFlipBtn();
 });
 
 // ===== AI 解读 =====
