@@ -425,7 +425,7 @@ document.getElementById('arcStage').addEventListener('wheel', function(e) {
       var deckIdx = parseInt(cardTarget.dataset.deckIdx);
       if (!isNaN(deckIdx)) {
         window.__touchHandled = true;
-        popCard(deckIdx);
+        selectFromArc(deckIdx);
       }
     } else {
       startMomentum();
