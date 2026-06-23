@@ -116,16 +116,6 @@
       cardReadings.appendChild(drawer);
     });
 
-    // 行动建议
-    document.getElementById('adviceText').innerHTML = '<div class="advice-text">' + (data.advice || '').replace(/\n/g, '<br>') + '</div>';
-
-    // 反思问题
-    var reflections = data.reflection || [];
-    var refHtml = '';
-    reflections.forEach(function(q, i) {
-      refHtml += '<div class="reflection-question"><span class="rq-num">' + (i+1) + '</span><span>' + q + '</span></div>';
-    });
-    document.getElementById('reflectionText').innerHTML = refHtml;
   }
 
   // ===== 静态牌义兜底 =====
@@ -175,17 +165,6 @@
       cardReadings.appendChild(drawer);
     });
 
-    // 行动建议
-    var adviceParts = cards.map(function(card) {
-      return '• ' + card.position + '：' + (card.advice || '');
-    });
-    document.getElementById('adviceText').innerHTML = '<div class="advice-text">综合各牌位的建议：\n' + adviceParts.join('\n') + '</div>';
-
-    // 反思问题
-    document.getElementById('reflectionText').innerHTML =
-      '<div class="reflection-question"><span class="rq-num">1</span><span>你从这些牌中感受到了什么情绪？</span></div>' +
-      '<div class="reflection-question"><span class="rq-num">2</span><span>当前生活中，你最需要做出改变的一件事是什么？</span></div>' +
-      '<div class="reflection-question"><span class="rq-num">3</span><span>如果没有任何限制，你会如何回应牌的指引？</span></div>';
   };
 
   // ===== 工具函数 =====
