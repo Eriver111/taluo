@@ -255,10 +255,10 @@
 /* 弧形卡牌 — 手持扇形 */
 .arc-card {
   position: absolute;
-  bottom: -30px;
+  bottom: -15px;
   /* left 由 JS 设置 */
   width: 115px; height: 175px;
-  transform-origin: 50% 220%;  /* 统一握点：牌下方深处，模拟手持 */
+  transform-origin: 50% 160%;  /* 握点更近，弧度更紧凑 */
   transform: rotate(var(--arc-angle, 0deg));
   cursor: pointer;
   border-radius: 10px; overflow: visible;
@@ -503,7 +503,7 @@
   .slot-remove { width: 14px; height: 14px; font-size: 7px; top: 2px; right: 2px; }
 
   /* 牌扇 — 手持扇形 */
-  .arc-card { width: 105px; height: 162px; bottom: -25px; }
+  .arc-card { width: 105px; height: 162px; bottom: -12px; }
   .arc-card-num { width: 18px; height: 18px; font-size: 9px; top: -4px; left: -4px; }
 
   .tarot-card-big { width: 200px; height: 315px; }
@@ -525,7 +525,7 @@
   .slot { min-height: 68px; padding: 3px 1px; }
   .slot-img { width: 32px; height: 48px; }
   .slot-name { font-size: 8px; }
-  .arc-card { width: 90px; height: 140px; bottom: -20px; }
+  .arc-card { width: 90px; height: 140px; bottom: -10px; }
   .arc-card-num { width: 16px; height: 16px; font-size: 8px; }
   .tarot-card-big { width: 170px; height: 270px; }
   .tcb-name { font-size: 15px; }
